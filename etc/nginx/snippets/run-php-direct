@@ -1,0 +1,3 @@
+include /etc/nginx/fastcgi.conf;
+
+fastcgi_pass php_fpm;

@@ -255,8 +255,17 @@ $wgHooks['SkinAddFooterLinks'][] = function ( $skin, $key, &$links ) {
 
 function bg3wikiAdsEnabled( OutputPage $out ) {
 	$user = $out->getUser();
+	if ( $user->isRegistered() ) {
+		return false;
+	}
 	$ns = $out->getTitle()->getNamespace();
-	return $user->isAnon() && bg3wikiAdsEnabledNs( $ns );
+	if ( !bg3wikiAdsEnabledNs($ns) ) {
+		return false;
+	}
+	if ( isset($_COOKIE['bg3wiki_noads']) ) {
+		return false;
+	}
+	return true;
 }
 
 function bg3wikiAdsEnabledNs( $ns ) {
@@ -299,7 +308,7 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 # following variables:
 #
 #   $adsHeadScript = <script> added to <head>
-#   $adsBodyScript = <script> added to end of <body>
+#   $adsBodyEndScript = <script> added to end of <body>
 #
 #   $adsHeaderDiv  = <div> with insertion point for header ad
 #   $adsSidebarDiv = <div> with insertion point for sidebar ad
@@ -312,12 +321,15 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 $adProvider = $_REQUEST['ad_provider'];
 
 if ( !$adProvider ) {
+	$adProvider = 'playwire';
+/*
 	$coinFlip = random_int(0, 1);
 	if ( $coinFlip == 0 ) {
 		$adProvider = 'publift';
 	} else {
 		$adProvider = 'playwire';
 	}
+*/
 }
 
 require "ads-$adProvider.php";
@@ -332,36 +344,36 @@ if ( $adsHeadScript ) {
 	};
 }
 
-if ( $adsBodyScript ) {
+if ( $adsBodyEndScript ) {
 	$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
-		use ($adsBodyScript)
+		use ($adsBodyEndScript)
 	{
 		if ( bg3wikiAdsEnabled( $skin->getOutput() ) ) {
-			$html .= $adsBodyScript;
+			$html .= $adsBodyEndScript;
 		}
 	};
 }
 
 $adsHeaderHTML = <<< EOF
-	<div id='bg3wiki-header-ad' class='bg3wiki-ad'>
-		<p>Ad placeholder</p>
-		$adsHeaderDiv
-	</div>
+  <div id='bg3wiki-header-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsHeaderDiv
+  </div>
 EOF;
 
 $adsSidebarHTML = <<< EOF
-	<div id='bg3wiki-sidebar-ad' class='bg3wiki-ad'>
-		<p>Ad placeholder</p>
-		$adsSidebarDiv
-	</div>
-	<p id='bg3wiki-ad-provider-notice'>served by: $adProvider</p>
+  <div id='bg3wiki-sidebar-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsSidebarDiv
+  </div>
+  <p id='bg3wiki-ad-provider-notice'>served by: $adProvider</p>
 EOF;
 
 $adsFooterHTML = <<< EOF
-	<div id='bg3wiki-footer-ad' class='bg3wiki-ad'>
-		<p>Ad placeholder</p>
-		$adsFooterDiv
-	</div>
+  <div id='bg3wiki-footer-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsFooterDiv
+  </div>
 EOF;
 
 $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )

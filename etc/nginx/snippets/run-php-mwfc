@@ -1,0 +1,37 @@
+#
+# MediaWiki FastCGI with Response Caching (Execution)
+#
+# This file is meant to be included from within location { } blocks,
+# to actually pass a request to PHP-FPM.
+#
+# See conf.d/mediawiki-fcgi.conf for the setup this depends on.
+#
+
+include /etc/nginx/fastcgi.conf;
+
+#access_log /var/log/nginx/mwcache-stats.log mwfc_stats gzip;
+
+fastcgi_pass php_fpm;
+
+fastcgi_cache MW;
+fastcgi_cache_valid 1h;
+fastcgi_cache_use_stale error timeout http_500 http_503;
+
+fastcgi_ignore_headers Vary;
+
+fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
+
+# Note: This doesn't correspond to the upstream FastCGI docs!
+#
+# The functionality is provided by this package:
+#   libnginx-mod-http-cache-purge
+#
+# Whose documentation can be found here:
+#   https://github.com/FRiCKLE/ngx_cache_purge
+#
+# Or here if you're using this fork:
+#   https://github.com/nginx-modules/ngx_cache_purge
+#
+fastcgi_cache_purge PURGE from 127.0.0.0/8;
+
+add_header X-Cache $upstream_cache_status always;

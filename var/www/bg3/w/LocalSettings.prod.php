@@ -253,12 +253,19 @@ $wgHooks['SkinAddFooterLinks'][] = function ( $skin, $key, &$links ) {
 # Advertisement
 #
 
-$bg3wikiFuseJs = 'https://cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
-
 function bg3wikiAdsEnabled( OutputPage $out ) {
 	$user = $out->getUser();
+	if ( $user->isRegistered() ) {
+		return false;
+	}
 	$ns = $out->getTitle()->getNamespace();
-	return $user->isAnon() && bg3wikiAdsEnabledNs( $ns );
+	if ( !bg3wikiAdsEnabledNs($ns) ) {
+		return false;
+	}
+	if ( isset($_COOKIE['bg3wiki_noads']) ) {
+		return false;
+	}
+	return true;
 }
 
 function bg3wikiAdsEnabledNs( $ns ) {
@@ -273,14 +280,6 @@ function bg3wikiAdsEnabledNs( $ns ) {
 	}
 }
 
-# Add Publift Fuse script
-$wgHooks['BeforePageDisplay'][] = function ( $out, $skin ) use ($bg3wikiFuseJs) {
-	if ( bg3wikiAdsEnabled( $out ) ) {
-		$script = "<script async src='$bg3wikiFuseJs'></script>";
-		$out->addHeadItem("bg3wiki-ads", $script);
-	}
-};
-
 # Add CSS class to body depending on whether ads should be enabled
 $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 	if ( bg3wikiAdsEnabled( $out ) ) {
@@ -290,22 +289,105 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 	}
 };
 
-# Add insertion point for top-right header ad on desktop
-$wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
+#
+# We implement three ad units right now:
+#
+#   Header
+#   Top/top-right static banner on desktop (Vector)
+#
+#   Sidebar
+#   Sticky vertical in sidebar on desktop (Vector)
+#
+#   Footer
+#   Sticky footer on mobile (Citizen)
+#
+
+#
+# To support easily switching ad partner and doing A/B testing,
+# we will include a file "ads-$adProvider.php" that defines the
+# following variables:
+#
+#   $adsHeadScript = <script> added to <head>
+#   $adsBodyEndScript = <script> added to end of <body>
+#
+#   $adsHeaderDiv  = <div> with insertion point for header ad
+#   $adsSidebarDiv = <div> with insertion point for sidebar ad
+#   $adsFooterDiv  = <div> with insertion point for footer ad
+#
+# The $adProvider can be controlled with a URL parameter and is
+# otherwise decided on a coin flip when doing A/B testing.
+#
+
+$adProvider = $_REQUEST['ad_provider'];
+
+if ( !$adProvider ) {
+	$coinFlip = random_int(0, 9);
+	if ( $coinFlip == 0 ) {
+		$adProvider = 'playwire';
+	} else {
+		$adProvider = 'publift';
+	}
+}
+
+require "ads-$adProvider.php";
+
+if ( $adsHeadScript ) {
+	$wgHooks['BeforePageDisplay'][] = function ( $out, $skin )
+		use ($adsHeadScript)
+	{
+		if ( bg3wikiAdsEnabled( $out ) ) {
+			$out->addHeadItem("bg3wiki-ads", $adsHeadScript);
+		}
+	};
+}
+
+if ( $adsBodyEndScript ) {
+	$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
+		use ($adsBodyEndScript)
+	{
+		if ( bg3wikiAdsEnabled( $skin->getOutput() ) ) {
+			$html .= $adsBodyEndScript;
+		}
+	};
+}
+
+$adsHeaderHTML = <<< EOF
+  <div id='bg3wiki-header-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsHeaderDiv
+  </div>
+EOF;
+
+$adsSidebarHTML = <<< EOF
+  <div id='bg3wiki-sidebar-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsSidebarDiv
+  </div>
+  <p id='bg3wiki-ad-provider-notice'>served by: $adProvider</p>
+EOF;
+
+$adsFooterHTML = <<< EOF
+  <div id='bg3wiki-footer-ad' class='bg3wiki-ad'>
+    <p>Ad placeholder</p>
+    $adsFooterDiv
+  </div>
+EOF;
+
+$wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )
+	use ( $adsHeaderHTML )
+{
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
 	if ( $skin->getSkinName() !== "vector" ) {
 		return;
 	}
-	$html .= "<div id='bg3wiki-header-ad' class='bg3wiki-ad'>";
-	$html .= "<p>Ad placeholder</p>";
-	$html .= "<div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>";
-	$html .= "</div>";
+	$html .= $adsHeaderHTML;
 };
 
-# Add insertion point for sticky vertical ad on desktop
-$wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
+$wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html )
+	use ( $adsSidebarHTML )
+{
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -315,24 +397,19 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	if ( $portletName !== "Advertisement" ) {
 		return;
 	}
-	$html .= "<div id='bg3wiki-sidebar-ad' class='bg3wiki-ad'>";
-	$html .= "<p>Ad placeholder</p>";
-	$html .= "<div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>";
-	$html .= "</div>";
+	$html .= $adsSidebarHTML;
 };
 
-# Add insertion point for bottom banner ad on mobile
-$wgHooks['SkinAfterContent'][] = function( &$html, $skin ) {
+$wgHooks['SkinAfterContent'][] = function( &$html, $skin )
+	use ( $adsFooterHTML )
+{
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
 	if ( $skin->getSkinName() !== "citizen" ) {
 		return;
 	}
-	$html .= "<div id='bg3wiki-footer-ad' class='bg3wiki-ad'>";
-	$html .= "<p>Ad placeholder</p>";
-	$html .= "<div id='bg3wiki-footer-ad-fuse' data-fuse='23198268151'></div>";
-	$html .= "</div>";
+	$html .= $adsFooterHTML;
 };
 
 #

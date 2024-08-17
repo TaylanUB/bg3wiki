@@ -6,7 +6,7 @@ $adsHeadScript = <<< EOF
 <script async src='$bg3wikiFuseJs'></script>
 EOF;
 
-$adsBodyScript = <<< EOF
+$adsBodyEndScript = <<< EOF
 EOF;
 
 $adsHeaderDiv = <<< EOF

@@ -1,0 +1,144 @@
+# Easily toggle logging on/off here
+map "" $bg3log {
+	default 0;
+}
+
+map $request_uri $bg3log_pagehits {
+	default    0;
+	"~^/wiki/" 1;
+}
+
+log_format bg3wiki_pagehits
+	'$time_iso8601 $remote_addr $status '
+	'$request_uri $http_referer "$http_user_agent"';
+
+server {
+	listen 443 ssl;
+	server_name bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/bg3wiki-access.log combined gzip if=$bg3log;
+	error_log /var/log/nginx/bg3wiki-error.log;
+
+	access_log /var/log/nginx/bg3wiki-pagehits.log
+		bg3wiki_pagehits if=$bg3log_pagehits;
+
+	log_not_found off;
+
+	root /var/www/bg3;
+
+	#include headers/default;
+	#include headers/unsafe-csp;
+
+	# Why was this needed again?
+	# Turn on server logs and see if some clients still request it.
+	location = /w/resources/assets/bg3wiki-favicon.ico {
+		return 301 /favicon.ico;
+	}
+
+	### LibreSpeed ###
+
+	location /speedtest {
+	}
+
+	location ~ ^/speedtest/backend/.*\.php$ {
+		include snippets/run-php-direct;
+	}
+
+	### END LibreSpeed ###
+
+	# No cache for robots, sitemaps, ads.txt
+	location ~ ^/(robots|sitemap|ads\.txt) {
+	}
+
+	# Static assets outside of MediaWiki
+	location ~ ^/(favicon|static) {
+		include headers/cache-30d;
+	}
+
+	# Root URL is main page
+	location = / {
+		fastcgi_index w/index.php;
+		include snippets/run-php-mwfc;
+	}
+
+	location = /wiki/Main_Page {
+		return 301 /;
+	}
+
+	# Location for wiki's entry points
+	location ~ ^/w/(index|load|api|thumb|opensearch_desc|rest)\.php$ {
+		include snippets/run-php-mwfc;
+	}
+
+	# Block Discord's broken page preview tool
+	location = /w/api.php {
+		if ($http_user_agent ~ "Discordbot") {
+			return 403;
+		}
+		include snippets/run-php-mwfc;
+	}
+
+	# Images
+	location /w/images {
+		include headers/cache-1d;
+	}
+	location /w/images/deleted {
+		deny all;
+	}
+
+	# MediaWiki assets (usually images)
+	location ~ ^/w/resources/(assets|lib|src) {
+		include headers/cache-30d;
+	}
+
+	# Assets, scripts and styles from skins and extensions
+	location ~ ^/w/(skins|extensions)/.+\.(css|js|gif|ico|jpg|jpeg|png|svg|webp|wasm|ttf|woff|woff2)$ {
+		include headers/cache-30d;
+	}
+
+	# Handling for Mediawiki REST API, see [[mw:API:REST_API]]
+	location /w/rest.php/ {
+		try_files $uri $uri/ /w/rest.php?$query_string;
+	}
+
+	# Handling for the article path (pretty URLs)
+	location /wiki/ {
+		rewrite ^/wiki/(?<pagename>.*)$ /w/index.php;
+	}
+
+	# Every other entry point will be disallowed.
+	# Add specific rules for other entry points/images as needed above this
+	location / {
+		return 404;
+	}
+}
+
+server {
+	listen 80;
+	server_name bg3.wiki www.bg3.wiki;
+
+	access_log /var/log/nginx/bg3wiki-redirect.log combined if=$bg3log;
+	error_log /var/log/nginx/bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://bg3.wiki$request_uri;
+	}
+}
+
+server {
+	listen 443 ssl;
+	server_name www.bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/bg3wiki-redirect.log combined if=$bg3log;
+	error_log /var/log/nginx/bg3wiki-error.log;
+
+	return 301 https://bg3.wiki$request_uri;
+}
