@@ -46,6 +46,11 @@ server {
 		include headers/cache-30d;
 	}
 
+	# Custom CSS and JS code
+	location ~ ^/(css|js)/ {
+		# No cache on dev subdomain
+	}
+
 	# Root URL is main page
 	location = / {
 		fastcgi_index w/index.php;
