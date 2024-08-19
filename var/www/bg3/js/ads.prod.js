@@ -9,7 +9,7 @@
 	var query = new URLSearchParams(window.location.search);
 	var provider = query.get('ad_provider');
 	if (provider == null) {
-		if (Math.random() < 0.05) {
+		if (Math.random() < 0.5) {
 			provider = 'playwire';
 		} else {
 			provider = 'publift';
