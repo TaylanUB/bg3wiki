@@ -302,52 +302,7 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 #   Sticky footer on mobile (Citizen)
 #
 
-#
-# To support easily switching ad partner and doing A/B testing,
-# we will include a file "ads-$adProvider.php" that defines the
-# following variables:
-#
-#   $adsMainScriptSrc = URL of ad provider's main JS file
-#
-#   $adsHeadScript = <script> added to the <head>
-#
-#   $adsHeaderDiv  = <div> with insertion point for header ad
-#   $adsSidebarDiv = <div> with insertion point for sidebar ad
-#   $adsFooterDiv  = <div> with insertion point for footer ad
-#
-# The $adProvider can be controlled with a URL parameter and is
-# otherwise decided on a coin flip when doing A/B testing.
-#
-
-$adProvider = $_REQUEST['ad_provider'];
-
-if ( !$adProvider ) {
-	$coinFlip = random_int(0, 9);
-	if ( $coinFlip == 0 ) {
-		$adProvider = 'playwire';
-	} else {
-		$adProvider = 'publift';
-	}
-}
-
-if ( $devSite ) {
-	require "ads-$adProvider.dev.php";
-} else {
-	require "ads-$adProvider.prod.php";
-}
-
-$wgHooks['BeforePageDisplay'][] = function ( $out, $skin )
-	use ( $adsHeadScript )
-{
-	if ( !bg3wikiAdsEnabled( $out ) ) {
-		return;
-	}
-	$out->addHeadItem("bg3wiki-ads", $adsHeadScript);
-};
-
-$wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )
-	use ( $adsHeaderDiv )
-{
+$wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -357,14 +312,13 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )
 	$html .= <<< EOF
 	  <div id='bg3wiki-header-ad'>
 	    <p>Ad placeholder</p>
-	    $adsHeaderDiv
+	    <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
+	    <div id='bg3wiki-header-ad-ramp'></div>
 	  </div>
 	EOF;
 };
 
-$wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html )
-	use ( $adsSidebarDiv, $adProvider )
-{
+$wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -377,17 +331,14 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html )
 	$html .= <<< EOF
 	  <div id='bg3wiki-sidebar-ad'>
 	    <p>Ad placeholder</p>
-	    $adsSidebarDiv
+	    <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
+	    <div id='bg3wiki-sidebar-ad-ramp'></div>
 	  </div>
-	  <p id='bg3wiki-ad-provider-notice'>
-	    served by: $adProvider
-	  </p>
+	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
 };
 
-$wgHooks['SkinAfterContent'][] = function( &$html, $skin )
-	use ( $adsFooterDiv, $adProvider )
-{
+$wgHooks['SkinAfterContent'][] = function( &$html, $skin ) {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -397,18 +348,15 @@ $wgHooks['SkinAfterContent'][] = function( &$html, $skin )
 	$html .= <<< EOF
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
-	    $adsFooterDiv
+	    <div id='bg3wiki-footer-ad-fuse' data-fuse='23198268151'></div>
+	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
-	  <p id='bg3wiki-ad-provider-notice'>
-	    Ads served by: $adProvider
-	  </p>
+	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
 
 };
 
-$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
-	use ( $adsMainScriptSrc )
-{
+$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html ) {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -422,10 +370,31 @@ $wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
 	    return;
 	  }
 
-	  console.log("Enabling ads.");
+	  var query = new URLSearchParams(window.location.search);
+	  var provider = query.get('ad_provider');
+	  if (provider == null) {
+	    if (Math.random() < 0.1) {
+	      provider = 'playwire';
+	    } else {
+	      provider = 'publift';
+	    }
+	  }
+
+	  console.log("Enabling ads for: " + provider);
+
+	  var notice = document.getElementById('bg3wiki-ad-provider-notice');
+	  notice.innerText = 'Ads provided by: ' + provider;
+
+	  // For Playwire
+	  window.ramp = {};
+	  window.ramp.que = [];
 
 	  var script = document.createElement('script');
-	  script.src = '$adsMainScriptSrc';
+	  if (provider == 'playwire') {
+	    script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
+	  } else {
+	    script.src = '//cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
+	  }
 	  script.onload = function(){
 	    console.log('Done loading ads JS.');
 	  };
