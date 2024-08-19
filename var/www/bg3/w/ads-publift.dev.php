@@ -1,13 +1,8 @@
 <?php
 
-$bg3wikiFuseJs = 'https://cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
+$adsMainScriptSrc = 'https://cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
 
-$adsHeadScript = <<< EOF
-<script async src='$bg3wikiFuseJs'></script>
-EOF;
-
-$adsBodyEndScript = <<< EOF
-EOF;
+$adsHeadScript = '';
 
 $adsHeaderDiv = <<< EOF
 <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>

@@ -1,6 +1,6 @@
 <?php
 
-$bg3wikiRampJs = '//cdn.intergient.com/1025372/75208/ramp.js';
+$adsMainScriptSrc = '//cdn.intergient.com/1025372/75208/ramp.js';
 
 #$bg3wikiHeaderAdId  = 'bg3wiki-header-ad-ramp';
 #$bg3wikiSidebarAdId = 'bg3wiki-sidebar-ad-ramp';
@@ -17,17 +17,15 @@ $adsHeadScript = <<< EOF
 </script>
 EOF;
 
-$adsBodyEndScript = <<< EOF
-<script async src='$bg3wikiRampJs'></script>
-EOF;
-
 $adsHeaderDiv = <<< EOF
 <div id='$bg3wikiHeaderAdId' data-pw-desk='$bg3wikiHeaderAdId'></div>
+<!--
 <script>
   window.ramp.que.push(function () {
     window.ramp.addTag('$bg3wikiHeaderAdId');
   })
 </script>
+-->
 EOF;
 
 $adsSidebarDiv = <<< EOF
@@ -42,11 +40,9 @@ EOF;
 $adsFooterDiv = <<< EOF
 <div id='$bg3wikiFooterAdId' data-pw-mobi='$bg3wikiFooterAdId'></div>
 <script>
-  if (window.innerHeight >= 720) {
-    window.ramp.que.push(function () {
-      window.ramp.addTag('$bg3wikiFooterAdId');
-    })
-  }
+  window.ramp.que.push(function () {
+    window.ramp.addTag('$bg3wikiFooterAdId');
+  })
 </script>
 EOF;
 

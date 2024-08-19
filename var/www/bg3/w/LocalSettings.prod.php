@@ -307,8 +307,7 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 # we will include a file "ads-$adProvider.php" that defines the
 # following variables:
 #
-#   $adsHeadScript = <script> added to <head>
-#   $adsBodyEndScript = <script> added to end of <body>
+#   $adsMainScriptSrc = URL of ad provider's main JS file
 #
 #   $adsHeaderDiv  = <div> with insertion point for header ad
 #   $adsSidebarDiv = <div> with insertion point for sidebar ad
@@ -329,52 +328,14 @@ if ( !$adProvider ) {
 	}
 }
 
-require "ads-$adProvider.php";
-
-if ( $adsHeadScript ) {
-	$wgHooks['BeforePageDisplay'][] = function ( $out, $skin )
-		use ($adsHeadScript)
-	{
-		if ( bg3wikiAdsEnabled( $out ) ) {
-			$out->addHeadItem("bg3wiki-ads", $adsHeadScript);
-		}
-	};
+if ( $devSite ) {
+	require "ads-$adProvider.dev.php";
+} else {
+	require "ads-$adProvider.prod.php";
 }
-
-if ( $adsBodyEndScript ) {
-	$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
-		use ($adsBodyEndScript)
-	{
-		if ( bg3wikiAdsEnabled( $skin->getOutput() ) ) {
-			$html .= $adsBodyEndScript;
-		}
-	};
-}
-
-$adsHeaderHTML = <<< EOF
-  <div id='bg3wiki-header-ad' class='bg3wiki-ad'>
-    <p>Ad placeholder</p>
-    $adsHeaderDiv
-  </div>
-EOF;
-
-$adsSidebarHTML = <<< EOF
-  <div id='bg3wiki-sidebar-ad' class='bg3wiki-ad'>
-    <p>Ad placeholder</p>
-    $adsSidebarDiv
-  </div>
-  <p id='bg3wiki-ad-provider-notice'>served by: $adProvider</p>
-EOF;
-
-$adsFooterHTML = <<< EOF
-  <div id='bg3wiki-footer-ad' class='bg3wiki-ad'>
-    <p>Ad placeholder</p>
-    $adsFooterDiv
-  </div>
-EOF;
 
 $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )
-	use ( $adsHeaderHTML )
+	use ( $adsHeaderDiv )
 {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
@@ -382,11 +343,16 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin )
 	if ( $skin->getSkinName() !== "vector" ) {
 		return;
 	}
-	$html .= $adsHeaderHTML;
+	$html .= <<< EOF
+	  <div id='bg3wiki-header-ad'>
+	    <p>Ad placeholder</p>
+	    $adsHeaderDiv
+	  </div>
+	EOF;
 };
 
 $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html )
-	use ( $adsSidebarHTML )
+	use ( $adsSidebarDiv, $adProvider )
 {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
@@ -397,11 +363,19 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html )
 	if ( $portletName !== "Advertisement" ) {
 		return;
 	}
-	$html .= $adsSidebarHTML;
+	$html .= <<< EOF
+	  <div id='bg3wiki-sidebar-ad'>
+	    <p>Ad placeholder</p>
+	    $adsSidebarDiv
+	  </div>
+	  <p id='bg3wiki-ad-provider-notice'>
+	    served by: $adProvider
+	  </p>
+	EOF;
 };
 
 $wgHooks['SkinAfterContent'][] = function( &$html, $skin )
-	use ( $adsFooterHTML )
+	use ( $adsFooterDiv, $adProvider )
 {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
@@ -409,7 +383,48 @@ $wgHooks['SkinAfterContent'][] = function( &$html, $skin )
 	if ( $skin->getSkinName() !== "citizen" ) {
 		return;
 	}
-	$html .= $adsFooterHTML;
+	$html .= <<< EOF
+	  <div id='bg3wiki-footer-ad'>
+	    <p>Ad placeholder</p>
+	    $adsFooterDiv
+	  </div>
+	  <p id='bg3wiki-ad-provider-notice'>
+	    Ads served by: $adProvider
+	  </p>
+	EOF;
+
+};
+
+$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
+	use ( $adsMainScriptSrc )
+{
+	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
+		return;
+	}
+	$html .= <<< EOF
+	<script>
+	(function(){
+	  var classes = document.body.classList;
+	  var height = window.innerHeight;
+	  if (classes.contains('skin-citizen') && height < 720) {
+	    console.log('Ads disabled because height < 720px.');
+	    return;
+	  }
+
+	  console.log("Enabling ads.");
+
+	  var script = document.createElement('script');
+	  script.src = '$adsMainScriptSrc';
+	  script.onload = function(){
+	    console.log('Done loading ads JS.');
+	  };
+	  script.onerror = function(){
+	    console.log('Error loading ads JS.');
+	  };
+	  document.body.appendChild(script);
+	})()
+	</script>
+	EOF;
 };
 
 #
