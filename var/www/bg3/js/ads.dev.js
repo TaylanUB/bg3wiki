@@ -26,6 +26,7 @@
 	window.ramp.que = [];
 
 	var script = document.createElement('script');
+	script.async = true;
 	if (provider == 'playwire') {
 		script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
 	} else {
