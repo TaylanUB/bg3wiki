@@ -482,7 +482,7 @@ $wgParserCacheExpiryTime = 10 * 24 * 60 * 60;
 # Allow caching via reverse proxy
 # In our case this is just the Nginx FCGI cache
 $wgUseCdn = !$devSite;
-$wgCdnMaxAge = 24 * 60 * 60;
+$wgCdnMaxAge = 3600;
 
 # Make MediaWiki send PURGE requests to Nginx
 # Note that this implicitly uses port 1080
@@ -569,10 +569,6 @@ $wgNamespacesToBeSearchedDefault = [
 # User groups & permissions
 #
 
-$wgGroupPermissions['*']['deletedhistory'] = true;
-$wgGroupPermissions['*']['browsearchive'] = true;
-$wgGroupPermissions['*']['deletedtext'] = true;
-
 $wgAvailableRights[] = 'editmodules';
 $wgAvailableRights[] = 'editproject';
 $wgAvailableRights[] = 'edittemplates';
@@ -602,6 +598,11 @@ $wgGroupPermissions['sysop']['checkuser-temporary-account'] = true;
 $wgNamespaceProtection[NS_TEMPLATE] = ['edittemplates'];
 $wgNamespaceProtection[NS_PROJECT] = ['editproject'];
 $wgNamespaceProtection[NS_MODULE] = ['editmodules'];
+
+# To allow the public to see deleted content:
+#$wgGroupPermissions['*']['deletedhistory'] = true;
+#$wgGroupPermissions['*']['browsearchive'] = true;
+#$wgGroupPermissions['*']['deletedtext'] = true;
 
 ####################################
 #                                  #
