@@ -452,8 +452,12 @@ $wgTidyConfig = [
 	'pwrap' => false,
 ];
 
-# For when working on MW:Vector.css and such
-#$wgResourceLoaderMaxage['unversioned'] = 20;
+# Useful when working on MW:Vector.css and such
+#$wgResourceLoaderMaxage['unversioned'] = 5;
+
+if ( $devSite ) {
+	$wgResourceLoaderMaxage['unversioned'] = 5;
+}
 
 #
 # Security

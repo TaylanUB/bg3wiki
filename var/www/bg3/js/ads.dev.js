@@ -1,13 +1,23 @@
 (function(){
-	var classes = document.body.classList;
-	var height = window.innerHeight;
-	if (classes.contains('skin-citizen') && height < 720) {
-		console.log('Ads disabled because height < 720px.');
+
+let adsEnabled = false;
+
+function maybeEnableAds(){
+	if (adsEnabled) {
 		return;
 	}
 
-	var query = new URLSearchParams(window.location.search);
-	var provider = query.get('ad_provider');
+	if (innerWidth < 320 || innerHeight < 720) {
+		return;
+	}
+
+	enableAds();
+	adsEnabled = true;
+}
+
+function enableAds() {
+	const query = new URLSearchParams(window.location.search);
+	let provider = query.get('ad_provider');
 	if (provider == null) {
 		if (Math.random() < 0.5) {
 			provider = 'playwire';
@@ -18,14 +28,11 @@
 
 	console.log("Enabling ads for: " + provider);
 
-	var notice = document.getElementById('bg3wiki-ad-provider-notice');
-	notice.innerText = 'Ads provided by: ' + provider;
-
 	// For Playwire
 	window.ramp = {};
 	window.ramp.que = [];
 
-	var script = document.createElement('script');
+	const script = document.createElement('script');
 	script.async = true;
 	if (provider == 'playwire') {
 		script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
@@ -39,4 +46,13 @@
 		console.log('Error loading ads JS.');
 	};
 	document.body.appendChild(script);
+
+	const notice = document.getElementById('bg3wiki-ad-provider-notice');
+	notice.innerText = 'Ads provided by: ' + provider;
+}
+
+maybeEnableAds();
+
+addEventListener('resize', maybeEnableAds);
+
 })()
