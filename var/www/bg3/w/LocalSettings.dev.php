@@ -345,13 +345,23 @@ $wgHooks['SkinAfterContent'][] = function( &$html, $skin ) {
 	if ( $skin->getSkinName() !== "citizen" ) {
 		return;
 	}
+	$html .= "<p id='bg3wiki-ad-provider-notice'></p>";
+
+};
+
+$wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
+	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
+		return;
+	}
+	if ( $skin->getSkinName() !== "citizen" ) {
+		return;
+	}
 	$html .= <<< EOF
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-footer-ad-fuse' data-fuse='23198268151'></div>
 	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
-	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
 
 };
@@ -453,7 +463,7 @@ $wgTidyConfig = [
 ];
 
 # Useful when working on MW:Vector.css and such
-#$wgResourceLoaderMaxage['unversioned'] = 5;
+$wgResourceLoaderMaxage['unversioned'] = 5;
 
 if ( $devSite ) {
 	$wgResourceLoaderMaxage['unversioned'] = 5;

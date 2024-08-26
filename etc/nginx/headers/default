@@ -1,0 +1,3 @@
+include headers/strict-hsts;
+include headers/strict-pp;
+include headers/strict-rp;

@@ -60,7 +60,7 @@ server {
 
 	# Custom CSS and JS code
 	location ~ ^/(css|js)/ {
-		include headers/cache-1min;
+		include headers/cache-5min;
 	}
 
 	# Root URL is main page

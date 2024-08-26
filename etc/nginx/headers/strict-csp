@@ -1,0 +1,1 @@
+add_header Content-Security-Policy "default-src 'self' 'report-sample'; form-action 'self'; frame-ancestors 'self';" always;

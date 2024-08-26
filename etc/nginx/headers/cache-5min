@@ -1,0 +1,2 @@
+include headers/default;
+add_header Cache-Control "max-age=300, public";
