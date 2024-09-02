@@ -1,19 +1,28 @@
 (function(){
 
-if (innerWidth >= 320 && innerHeight >= 720) {
-	enableAds();
-} else {
-	addEventListener('resize', maybeEnableAds);
+/*
+ * Note: CSS viewport width/height doesn't match innerWidth/innerHeight!
+ * Use window.matchMedia to make sure we're in sync with CSS.
+ */
+
+function matchMinWH(w, h) {
+	return matchMedia(
+		`(min-width: ${w}px) and (min-height: ${h}px)`
+	);
 }
 
-function maybeEnableAds() {
-	if (innerWidth < 320 || innerHeight < 720) {
-		return;
-	}
+let matcher = matchMinWH(320, 600);
 
+if (matcher.matches) {
 	enableAds();
-
-	removeEventListener('resize', maybeEnableAds);
+} else {
+	matcher.onchange = function() {
+		if (matcher.matches) {
+			matcher.onchange = null;
+			matcher = null;
+			enableAds();
+		}
+	};
 }
 
 function enableAds() {
@@ -27,12 +36,10 @@ function enableAds() {
 		}
 	}
 
-	console.log("Enabling ads for: " + provider);
-
-	loadAdScript(provider);
-
 	const notice = document.getElementById('bg3wiki-ad-provider-notice');
 	notice.innerText = 'Ads provided by: ' + provider;
+
+	loadAdScript(provider);
 }
 
 function loadAdScript(provider) {
@@ -53,11 +60,9 @@ function loadAdScript(provider) {
 	const script = document.createElement('script');
 	script.async = true;
 	script.src = src;
-	script.onload = function(){
-		console.log('Done loading ads JS.');
-	};
 	script.onerror = function(){
-		console.log('Error loading ads JS.');
+		const classes = document.body.classList;
+		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
 	};
 	document.body.appendChild(script);
 }
@@ -126,19 +131,17 @@ function rampSetup() {
 	}
 
 	const sizes = [
-		[ [970, 1024], setFooterXL ],
-		[ [728, 1024], setFooterL  ],
-		[ [468,  720], setFooterM  ],
-		[ [320,  720], setFooterS  ],
+		[ matchMinWH(970, 800), setFooterXL ],
+		[ matchMinWH(728, 800), setFooterL  ],
+		[ matchMinWH(468, 600), setFooterM  ],
+		[ matchMinWH(320, 600), setFooterS  ],
 	];
 
 	function footerSetterForScreenSize() {
 		for (const entry of sizes) {
-			const dimens = entry[0];
+			const matcher = entry[0];
 			const setter = entry[1];
-			const w = dimens[0];
-			const h = dimens[1];
-			if (innerWidth >= w && innerHeight >= h) {
+			if (matcher.matches) {
 				return setter;
 			}
 		}
@@ -173,21 +176,18 @@ function fuseSetup() {
 		return;
 	}
 
-	// IDs to be changed
 	const footerFuseIds = [
-		[ [970, 1024], '23198268151' ],
-		[ [728, 1024], '23198268151' ],
-		[ [468,  720], '23198268151' ],
-		[ [320,  720], '23198268151' ],
+		[ matchMinWH(970, 800), '23201541515' ],
+		[ matchMinWH(728, 800), '23200582344' ],
+		[ matchMinWH(468, 600), '23200580337' ],
+		[ matchMinWH(320, 600), '23200581156' ],
 	];
 
 	function footerFuseIdForScreenSize() {
 		for (const entry of footerFuseIds) {
-			const dimens = entry[0];
+			const matcher = entry[0];
 			const fuseId = entry[1];
-			const w = dimens[0];
-			const h = dimens[1];
-			if (innerWidth >= w && innerHeight >= h) {
+			if (matcher.matches) {
 				return fuseId;
 			}
 		}

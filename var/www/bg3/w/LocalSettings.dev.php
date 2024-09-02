@@ -359,7 +359,7 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 	$html .= <<< EOF
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
-	    <div id='bg3wiki-footer-ad-fuse' data-fuse='23198268151'></div>
+	    <div id='bg3wiki-footer-ad-fuse'></div>
 	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
 	EOF;

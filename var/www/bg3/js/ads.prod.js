@@ -54,6 +54,8 @@ function enableAds() {
 	};
 
 	script.onerror = function(){
+		const classes = document.body.classList;
+		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
 		console.log('Error loading ads JS.');
 	};
 
