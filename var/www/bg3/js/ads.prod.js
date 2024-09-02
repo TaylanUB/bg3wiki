@@ -1,24 +1,36 @@
 (function(){
 
-if (window.innerWidth >= 320 && window.innerHeight >= 720) {
-	enableAds();
-} else {
-	addEventListener('resize', maybeEnableAds);
+/*
+ * Note: CSS viewport width/height doesn't match innerWidth/innerHeight!
+ * Use window.matchMedia to make sure we're in sync with CSS.
+ */
+
+function matchMinWH(w, h) {
+	return matchMedia(
+		`(min-width: ${w}px) and (min-height: ${h}px)`
+	);
 }
 
-function maybeEnableAds() {
-	if (window.innerWidth < 320 || window.innerHeight < 720) {
-		return;
-	}
+let matcher = matchMinWH(320, 600);
 
+if (matcher.matches) {
 	enableAds();
-
-	removeEventListener('resize', maybeEnableAds);
+} else {
+	matcher.onchange = function() {
+		if (matcher.matches) {
+			matcher.onchange = null;
+			matcher = null;
+			enableAds();
+		}
+	};
 }
 
 function enableAds() {
-	const query = new URLSearchParams(window.location.search);
-	let provider = query.get('ad_provider');
+	let provider = localStorage.getItem('ad_provider');
+	if (provider == null) {
+		const query = new URLSearchParams(location.search);
+		provider = query.get('ad_provider');
+	}
 	if (provider == null) {
 		if (Math.random() < 0.5) {
 			provider = 'playwire';
@@ -27,69 +39,130 @@ function enableAds() {
 		}
 	}
 
-	console.log("Enabling ads for: " + provider);
+	const notice = document.getElementById('bg3wiki-ad-provider-notice');
+	notice.innerText = 'Ads provided by: ' + provider;
 
+	loadAdScript(provider);
+}
+
+function loadAdScript(provider) {
+	let src;
 	if (provider == 'playwire') {
-		window.ramp = {};
-		window.ramp.que = [];
-		window.ramp.passiveMode = true;
-		window.ramp.que.push(rampSetup);
+		ramp = {};
+		ramp.que = [];
+		ramp.passiveMode = true;
+		ramp.que.push(rampSetup);
+		src = '//cdn.intergient.com/1025372/75208/ramp.js';
 	} else {
-		window.fusetag = {};
-		window.fusetag.que = [];
-//		window.fusetag.que.push(fuseSetup);
+		fusetag = {};
+		fusetag.que = [];
+		fusetag.que.push(fuseSetup);
+		src = '//cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
 	}
 
 	const script = document.createElement('script');
 	script.async = true;
-
-	if (provider == 'playwire') {
-		script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
-	} else {
-		script.src = '//cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
-	}
-
-	script.onload = function(){
-		console.log('Done loading ads JS.');
-	};
-
+	script.src = src;
 	script.onerror = function(){
 		const classes = document.body.classList;
 		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
-		console.log('Error loading ads JS.');
 	};
-
 	document.body.appendChild(script);
-
-	const notice = document.getElementById('bg3wiki-ad-provider-notice');
-	notice.innerText = 'Ads provided by: ' + provider;
 }
 
 function rampSetup() {
-	const ramp = window.ramp;
-
-	if (ramp.settings.device !== 'tablet') {
+	const classes = document.body.classList;
+	if (!classes.contains('skin-citizen')) {
+		console.log('Not on mobile.');
 		ramp.spaNewPage();
 		return;
 	}
 
-	if (window.innerWidth >= 728 && window.innerHeight >= 1024) {
-		ramp.setPath('large-portrait-tablet').then(() => ramp.spaNewPage());
-	} else {
-		ramp.spaNewPage();
+	let newPage = true;
+
+	function setFooterXL() {
+		setFooter('footer-970-wide', 'standard_iab_foot2');
 	}
 
-	rampRegisterScreenResizeHandler();
-}
+	function setFooterL() {
+		setFooter('large-portrait-tablet', 'standard_iab_foot2');
+	}
 
-function rampRegisterScreenResizeHandler() {
-	const ramp = window.ramp;
+	function setFooterM() {
+		setFooter('ROS', 'standard_iab_foot1');
+	}
 
-	const thresholdWidth = 728;
-	const thresholdHeight = 1024;
+	function setFooterS() {
+		setFooter('ROS', 'standard_iab_foot1');
+	}
 
-	let previousWidth = window.innerWidth;
-	let previousHeight = window.innerHeight;
+	function setNoFooter() {
+		setFooter('ROS', null);
+	}
+
+	function setFooter(path, type) {
+		console.log(`New Footer: ${path}/${type}`);
+
+		if (ramp.settings.cp == path) {
+			setType();
+		} else {
+			console.log('setpath');
+			ramp.setPath(path).then(setType);
+		}
+
+		function setType() {
+			console.log('settype');
+			if (newPage) {
+				console.log('newpage');
+				newPage = false;
+				ramp.spaNewPage();
+				return;
+			}
+			console.log('destroyunits');
+			ramp.destroyUnits('all').then(() => {
+				if (type == null) {
+					return;
+				}
+				console.log('addunits');
+				ramp.addUnits({
+					type: type,
+					selectorId: 'bg3wiki-footer-ad-ramp',
+				}).then(() => {
+					console.log('displayunits');
+					ramp.displayUnits();
+				});
+			});
+		}
+	}
+
+	const sizes = [
+		[ matchMinWH(970, 800), setFooterXL ],
+		[ matchMinWH(728, 800), setFooterL  ],
+		[ matchMinWH(468, 600), setFooterM  ],
+		[ matchMinWH(320, 600), setFooterS  ],
+	];
+
+	function footerSetterForScreenSize() {
+		for (const entry of sizes) {
+			const matcher = entry[0];
+			const setter = entry[1];
+			if (matcher.matches) {
+				return setter;
+			}
+		}
+		return setNoFooter;
+	}
+
+	let setter = footerSetterForScreenSize();
+	setter();
+
+	function onResize() {
+		const newSetter = footerSetterForScreenSize();
+		if (setter != newSetter) {
+			setter = newSetter;
+			ramp.que.push(setter);
+		}
+	}
 
 	let timeout;
 	const delay = 200;
@@ -98,66 +171,76 @@ function rampRegisterScreenResizeHandler() {
 		timeout = setTimeout(onResize, delay);
 	}
 
-	window.addEventListener('resize', debouncedOnResize);
+	addEventListener('resize', debouncedOnResize);
+}
+
+function fuseSetup() {
+	const classes = document.body.classList;
+	if (!classes.contains('skin-citizen')) {
+		console.log('Not on mobile.');
+		return;
+	}
+
+	const footerFuseIds = [
+		[ matchMinWH(970, 800), '23201541515' ],
+		[ matchMinWH(728, 800), '23200582344' ],
+		[ matchMinWH(468, 600), '23200580337' ],
+		[ matchMinWH(320, 600), '23200581156' ],
+	];
+
+	function footerFuseIdForScreenSize() {
+		for (const entry of footerFuseIds) {
+			const matcher = entry[0];
+			const fuseId = entry[1];
+			if (matcher.matches) {
+				return fuseId;
+			}
+		}
+		return null;
+	}
+
+	let footerFuseId = footerFuseIdForScreenSize();
+
+	function replaceFooterAdZone() {
+		console.log('Replacing footer fuseId to: ' + footerFuseId);
+
+		const outerDivId = 'bg3wiki-footer-ad';
+		const innerDivId = 'bg3wiki-footer-ad-fuse';
+
+		const outerDiv = document.getElementById(outerDivId);
+		const innerDiv = document.getElementById(innerDivId);
+		if (innerDiv != null) {
+			outerDiv.removeChild(innerDiv);
+		}
+
+		if (footerFuseId != null) {
+			const newDiv = document.createElement('div');
+			newDiv.id = innerDivId;
+			newDiv.setAttribute('data-fuse', footerFuseId);
+			outerDiv.appendChild(newDiv);
+
+			fusetag.registerZone(innerDivId);
+		}
+	}
+
+	replaceFooterAdZone();
 
 	function onResize() {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-
-		if (!ramp.settings.slots) {
-			return;
-		}
-
-		const slots = Object.keys(ramp.settings.slots);
-		if (slots.some(key => key.includes("foot"))) {
-			checkFooterSizeChange(width, height);
-		}
-
-		previousWidth = width;
-		previousHeight = height;
-	}
-
-	function checkFooterSizeChange(width, height) {
-		if ((previousWidth < thresholdWidth && width >= thresholdWidth) ||
-			(previousHeight < thresholdHeight && height >= thresholdHeight)) {
-
-			console.log("Screen size >= 728x1024");
-			setFooterLargeSize();
-
-		} else if ((previousWidth >= thresholdWidth && width < thresholdWidth) ||
-				   (previousHeight >= thresholdHeight && height < thresholdHeight)) {
-
-			console.log("Screen size < 728x1024");
-			setFooterSmallSize();
-
+		const newFuseId = footerFuseIdForScreenSize();
+		if (footerFuseId != newFuseId) {
+			footerFuseId = newFuseId;
+			fusetag.que.push(replaceFooterAdZone);
 		}
 	}
 
-	function setFooterLargeSize() {
-		ramp.setPath('large-portrait-tablet').then(() => {
-			ramp.destroyUnits('all').then(() => {
-				ramp.addUnits({
-					type: 'standard_iab_foot2',
-					selectorId: 'bg3wiki-footer-ad-ramp',
-				}).then(() => {
-					ramp.displayUnits();
-				});
-			});
-		});
+	let timeout;
+	const delay = 200;
+	function debouncedOnResize() {
+		clearTimeout(timeout);
+		timeout = setTimeout(onResize, delay);
 	}
 
-	function setFooterSmallSize() {
-		ramp.setPath('ROS').then(() => {
-			ramp.destroyUnits('all').then(() => {
-				ramp.addUnits({
-					type: 'standard_iab_foot1',
-					selectorId: 'bg3wiki-footer-ad-ramp',
-				}).then(() => {
-					ramp.displayUnits();
-				});
-			});
-		});
-	}
+	addEventListener('resize', debouncedOnResize);
 }
 
 })()

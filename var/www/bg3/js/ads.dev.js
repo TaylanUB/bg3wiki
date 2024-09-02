@@ -26,8 +26,11 @@ if (matcher.matches) {
 }
 
 function enableAds() {
-	const query = new URLSearchParams(location.search);
-	let provider = query.get('ad_provider');
+	let provider = localStorage.getItem('ad_provider');
+	if (provider == null) {
+		const query = new URLSearchParams(location.search);
+		provider = query.get('ad_provider');
+	}
 	if (provider == null) {
 		if (Math.random() < 0.5) {
 			provider = 'playwire';
@@ -103,28 +106,30 @@ function rampSetup() {
 		if (ramp.settings.cp == path) {
 			setType();
 		} else {
+			console.log('setpath');
 			ramp.setPath(path).then(setType);
 		}
 
 		function setType() {
+			console.log('settype');
+			if (newPage) {
+				console.log('newpage');
+				newPage = false;
+				ramp.spaNewPage();
+				return;
+			}
+			console.log('destroyunits');
 			ramp.destroyUnits('all').then(() => {
 				if (type == null) {
-					if (newPage) {
-						ramp.spaNewPage();
-						newPage = false;
-					}
 					return;
 				}
+				console.log('addunits');
 				ramp.addUnits({
 					type: type,
 					selectorId: 'bg3wiki-footer-ad-ramp',
 				}).then(() => {
-					if (newPage) {
-						ramp.spaNewPage();
-						newPage = false;
-					} else {
-						ramp.displayUnits();
-					}
+					console.log('displayunits');
+					ramp.displayUnits();
 				});
 			});
 		}
@@ -155,7 +160,7 @@ function rampSetup() {
 		const newSetter = footerSetterForScreenSize();
 		if (setter != newSetter) {
 			setter = newSetter;
-			setter();
+			ramp.que.push(setter);
 		}
 	}
 
@@ -194,8 +199,10 @@ function fuseSetup() {
 		return null;
 	}
 
-	function replaceFooterAdZone(fuseId) {
-		console.log('Replacing footer fuseId to: ' + fuseId);
+	let footerFuseId = footerFuseIdForScreenSize();
+
+	function replaceFooterAdZone() {
+		console.log('Replacing footer fuseId to: ' + footerFuseId);
 
 		const outerDivId = 'bg3wiki-footer-ad';
 		const innerDivId = 'bg3wiki-footer-ad-fuse';
@@ -206,24 +213,23 @@ function fuseSetup() {
 			outerDiv.removeChild(innerDiv);
 		}
 
-		if (fuseId != null) {
+		if (footerFuseId != null) {
 			const newDiv = document.createElement('div');
 			newDiv.id = innerDivId;
-			newDiv.setAttribute('data-fuse', fuseId);
+			newDiv.setAttribute('data-fuse', footerFuseId);
 			outerDiv.appendChild(newDiv);
 
 			fusetag.registerZone(innerDivId);
 		}
 	}
 
-	let footerFuseId = footerFuseIdForScreenSize();
-	replaceFooterAdZone(footerFuseId);
+	replaceFooterAdZone();
 
 	function onResize() {
 		const newFuseId = footerFuseIdForScreenSize();
 		if (footerFuseId != newFuseId) {
 			footerFuseId = newFuseId;
-			replaceFooterAdZone(footerFuseId);
+			fusetag.que.push(replaceFooterAdZone);
 		}
 	}
 
