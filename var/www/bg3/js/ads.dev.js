@@ -69,31 +69,27 @@ async function rampSetup() {
 		return await ramp.spaNewPage();
 	}
 
-	const footerSpecs = [
-		[ matchMinWH(970, 800), [ 'footer-970-wide', 'standard_iab_foot2' ] ],
-		[ matchMinWH(728, 800), [ 'large-portrait-tablet', 'standard_iab_foot2' ] ],
-		[ matchMinWH(468, 600), [ 'ROS', 'standard_iab_foot1' ] ],
-		[ matchMinWH(320, 600), [ 'ROS', 'standard_iab_foot1' ] ],
+	const footerTypes = [
+		[ matchMinWH(970, 800), 'standard_iab_foot3' ],
+		[ matchMinWH(728, 800), 'standard_iab_foot2' ],
+		[ matchMinWH(468, 600), 'standard_iab_foot1' ],
+		[ matchMinWH(320, 600), 'standard_iab_foot1' ],
 	];
 
-	function footerSpecsForScreenSize() {
-		for (const entry of footerSpecs)
+	function footerTypeForScreenSize() {
+		for (const entry of footerTypes)
 			if (entry[0].matches)
 				return entry[1];
 	}
 
-	let specs = footerSpecsForScreenSize();
-	const path = specs[0];
-	if (path != 'ROS') {
-		await ramp.setPath(path);
-	}
-	await ramp.spaNewPage();
+	let footerType = footerTypeForScreenSize();
+	refreshFooterType();
 
 	function onResize() {
-		const newSpecs = footerSpecsForScreenSize();
-		if (specs != newSpecs) {
-			specs = newSpecs;
-			ramp.que.push(refreshFooterSpecs);
+		const newType = footerTypeForScreenSize();
+		if (footerType != newType) {
+			footerType = newType;
+			ramp.que.push(refreshFooterType);
 		}
 	}
 
@@ -106,18 +102,14 @@ async function rampSetup() {
 
 	addEventListener('resize', debouncedOnResize);
 
-	async function refreshFooterSpecs() {
+	async function refreshFooterType() {
 		await ramp.destroyUnits('all');
-		if (!specs) {
+		if (!footerType) {
 			return;
 		}
 
-		const [ path, type ] = specs;
-		if (ramp.settings.cp != path) {
-			await ramp.setPath(path);
-		}
 		await ramp.addUnits({
-			type: type,
+			type: footerType,
 			selectorId: 'bg3wiki-footer-ad-ramp',
 		});
 		await ramp.displayUnits();

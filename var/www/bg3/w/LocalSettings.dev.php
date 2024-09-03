@@ -372,11 +372,8 @@ $wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
-	if ( $devSite ) {
-		$html .= '<script type="module" src="/js/ads.dev.js"></script>';
-	} else {
-		$html .= '<script src="/js/ads.prod.js"></script>';
-	}
+	$src = $devSite ? '/js/ads.dev.js' : '/js/ads.prod.js';
+	$html .= "<script async type='module' src='$src'></script>";
 };
 
 #
@@ -464,10 +461,6 @@ $wgTidyConfig = [
 
 # Useful when working on MW:Vector.css and such
 $wgResourceLoaderMaxage['unversioned'] = 5;
-
-if ( $devSite ) {
-	$wgResourceLoaderMaxage['unversioned'] = 5;
-}
 
 #
 # Security
@@ -661,8 +654,8 @@ $wgCargoMaxQueryLimit = 5000;
 $wgContribScoreDisableCache = true;
 $wgContribScoreCacheTTL = 0.1;
 $wgContribScoreReports = [
-    [ 30, 20 ],
-    [ 0, 200 ],
+	[ 30, 20 ],
+	[ 0, 200 ],
 ];
 
 #
@@ -707,30 +700,30 @@ $wgHTMLTagsAttributes['summary'] = [ 'class', 'style' ];
 $wgJsonConfigEnableLuaSupport = true;
 $wgJsonConfigModels['Tabular.JsonConfig'] = 'JsonConfig\JCTabularContent';
 $wgJsonConfigs['Tabular.JsonConfig'] = [
-        'namespace' => 486,
-        'nsName' => 'Data',
-        // page name must end in ".tab", and contain at least one symbol
-        'pattern' => '/.\.tab$/',
-        'license' => 'CC0-1.0',
-        'isLocal' => false,
+	'namespace' => 486,
+	'nsName' => 'Data',
+	// page name must end in ".tab", and contain at least one symbol
+	'pattern' => '/.\.tab$/',
+	'license' => 'CC0-1.0',
+	'isLocal' => false,
 ];
 
 $wgJsonConfigModels['Map.JsonConfig'] = 'JsonConfig\JCMapDataContent';
 $wgJsonConfigs['Map.JsonConfig'] = [
-        'namespace' => 486,
-        'nsName' => 'Data',
-        // page name must end in ".map", and contain at least one symbol
-        'pattern' => '/.\.map$/',
-        'license' => 'CC0-1.0',
-        'isLocal' => false,
+	'namespace' => 486,
+	'nsName' => 'Data',
+	// page name must end in ".map", and contain at least one symbol
+	'pattern' => '/.\.map$/',
+	'license' => 'CC0-1.0',
+	'isLocal' => false,
 ];
 $wgJsonConfigInterwikiPrefix = "commons";
 
 $wgJsonConfigs['Tabular.JsonConfig']['remote'] = [
-        'url' => 'https://commons.wikimedia.org/w/api.php'
+	'url' => 'https://commons.wikimedia.org/w/api.php'
 ];
 $wgJsonConfigs['Map.JsonConfig']['remote'] = [
-        'url' => 'https://commons.wikimedia.org/w/api.php'
+	'url' => 'https://commons.wikimedia.org/w/api.php'
 ];
 
 #
