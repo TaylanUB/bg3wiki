@@ -1,9 +1,10 @@
-(function(){
-
 /*
  * Note: CSS viewport width/height doesn't match innerWidth/innerHeight!
  * Use window.matchMedia to make sure we're in sync with CSS.
  */
+
+const ramp = window.ramp = {};
+const fusetag = window.fusetag = {};
 
 function matchMinWH(w, h) {
 	return matchMedia(
@@ -32,11 +33,7 @@ function enableAds() {
 		provider = query.get('ad_provider');
 	}
 	if (provider == null) {
-		if (Math.random() < 0.5) {
-			provider = 'playwire';
-		} else {
-			provider = 'publift';
-		}
+		provider = Math.random() < 0.5 ? 'playwire' : 'publift';
 	}
 
 	const notice = document.getElementById('bg3wiki-ad-provider-notice');
@@ -48,16 +45,12 @@ function enableAds() {
 function loadAdScript(provider) {
 	let src;
 	if (provider == 'playwire') {
-		ramp = {};
-		ramp.que = [];
-		ramp.passiveMode = true;
-		ramp.que.push(rampSetup);
 		src = '//cdn.intergient.com/1025372/75208/ramp.js';
+		ramp.que = [ rampSetup ];
+		ramp.passiveMode = true;
 	} else {
-		fusetag = {};
-		fusetag.que = [];
-		fusetag.que.push(fuseSetup);
 		src = '//cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
+		fusetag.que = [ fuseSetup ];
 	}
 
 	const script = document.createElement('script');
@@ -70,97 +63,37 @@ function loadAdScript(provider) {
 	document.body.appendChild(script);
 }
 
-function rampSetup() {
+async function rampSetup() {
 	const classes = document.body.classList;
 	if (!classes.contains('skin-citizen')) {
-		console.log('Not on mobile.');
-		ramp.spaNewPage();
-		return;
+		return await ramp.spaNewPage();
 	}
 
-	let newPage = true;
-
-	function setFooterXL() {
-		setFooter('footer-970-wide', 'standard_iab_foot2');
-	}
-
-	function setFooterL() {
-		setFooter('large-portrait-tablet', 'standard_iab_foot2');
-	}
-
-	function setFooterM() {
-		setFooter('ROS', 'standard_iab_foot1');
-	}
-
-	function setFooterS() {
-		setFooter('ROS', 'standard_iab_foot1');
-	}
-
-	function setNoFooter() {
-		setFooter('ROS', null);
-	}
-
-	function setFooter(path, type) {
-		console.log(`New Footer: ${path}/${type}`);
-
-		if (ramp.settings.cp == path) {
-			setType();
-		} else {
-			console.log('setpath');
-			ramp.setPath(path).then(setType);
-		}
-
-		function setType() {
-			console.log('settype');
-			if (newPage) {
-				console.log('newpage');
-				newPage = false;
-				ramp.spaNewPage();
-				return;
-			}
-			console.log('destroyunits');
-			ramp.destroyUnits('all').then(() => {
-				if (type == null) {
-					return;
-				}
-				console.log('addunits');
-				ramp.addUnits({
-					type: type,
-					selectorId: 'bg3wiki-footer-ad-ramp',
-				}).then(() => {
-					console.log('displayunits');
-					ramp.displayUnits();
-				});
-			});
-		}
-	}
-
-	const sizes = [
-		[ matchMinWH(970, 800), setFooterXL ],
-		[ matchMinWH(728, 800), setFooterL  ],
-		[ matchMinWH(468, 600), setFooterM  ],
-		[ matchMinWH(320, 600), setFooterS  ],
+	const footerSpecs = [
+		[ matchMinWH(970, 800), [ 'footer-970-wide', 'standard_iab_foot2' ] ],
+		[ matchMinWH(728, 800), [ 'large-portrait-tablet', 'standard_iab_foot2' ] ],
+		[ matchMinWH(468, 600), [ 'ROS', 'standard_iab_foot1' ] ],
+		[ matchMinWH(320, 600), [ 'ROS', 'standard_iab_foot1' ] ],
 	];
 
-	function footerSetterForScreenSize() {
-		for (const entry of sizes) {
-			const matcher = entry[0];
-			const setter = entry[1];
-			if (matcher.matches) {
-				return setter;
-			}
-		}
-		return setNoFooter;
+	function footerSpecsForScreenSize() {
+		for (const entry of footerSpecs)
+			if (entry[0].matches)
+				return entry[1];
 	}
 
-	let setter = footerSetterForScreenSize();
-	setter();
+	let specs = footerSpecsForScreenSize();
+	const path = specs[0];
+	if (path != 'ROS') {
+		await ramp.setPath(path);
+	}
+	await ramp.spaNewPage();
 
 	function onResize() {
-		const newSetter = footerSetterForScreenSize();
-		if (setter != newSetter) {
-			setter = newSetter;
-			ramp.que.push(setter);
+		const newSpecs = footerSpecsForScreenSize();
+		if (specs != newSpecs) {
+			specs = newSpecs;
+			ramp.que.push(refreshFooterSpecs);
 		}
 	}
 
@@ -172,12 +105,28 @@ function rampSetup() {
 	}
 
 	addEventListener('resize', debouncedOnResize);
+
+	async function refreshFooterSpecs() {
+		await ramp.destroyUnits('all');
+		if (!specs) {
+			return;
+		}
+
+		const [ path, type ] = specs;
+		if (ramp.settings.cp != path) {
+			await ramp.setPath(path);
+		}
+		await ramp.addUnits({
+			type: type,
+			selectorId: 'bg3wiki-footer-ad-ramp',
+		});
+		await ramp.displayUnits();
+	}
 }
 
 function fuseSetup() {
 	const classes = document.body.classList;
 	if (!classes.contains('skin-citizen')) {
-		console.log('Not on mobile.');
 		return;
 	}
 
@@ -189,40 +138,12 @@ function fuseSetup() {
 	];
 
 	function footerFuseIdForScreenSize() {
-		for (const entry of footerFuseIds) {
-			const matcher = entry[0];
-			const fuseId = entry[1];
-			if (matcher.matches) {
-				return fuseId;
-			}
-		}
-		return null;
+		for (const entry of footerFuseIds)
+			if (entry[0].matches)
+				return entry[1];
 	}
 
 	let footerFuseId = footerFuseIdForScreenSize();
-
-	function replaceFooterAdZone() {
-		console.log('Replacing footer fuseId to: ' + footerFuseId);
-
-		const outerDivId = 'bg3wiki-footer-ad';
-		const innerDivId = 'bg3wiki-footer-ad-fuse';
-
-		const outerDiv = document.getElementById(outerDivId);
-		const innerDiv = document.getElementById(innerDivId);
-		if (innerDiv != null) {
-			outerDiv.removeChild(innerDiv);
-		}
-
-		if (footerFuseId != null) {
-			const newDiv = document.createElement('div');
-			newDiv.id = innerDivId;
-			newDiv.setAttribute('data-fuse', footerFuseId);
-			outerDiv.appendChild(newDiv);
-
-			fusetag.registerZone(innerDivId);
-		}
-	}
-
 	replaceFooterAdZone();
 
 	function onResize() {
@@ -241,6 +162,24 @@ function fuseSetup() {
 	}
 
 	addEventListener('resize', debouncedOnResize);
-}
 
-})()
+	function replaceFooterAdZone() {
+		const outerDivId = 'bg3wiki-footer-ad';
+		const innerDivId = 'bg3wiki-footer-ad-fuse';
+
+		const outerDiv = document.getElementById(outerDivId);
+		const innerDiv = document.getElementById(innerDivId);
+		if (innerDiv != null) {
+			outerDiv.removeChild(innerDiv);
+		}
+
+		if (footerFuseId) {
+			const newDiv = document.createElement('div');
+			newDiv.id = innerDivId;
+			newDiv.setAttribute('data-fuse', footerFuseId);
+			outerDiv.appendChild(newDiv);
+
+			fusetag.registerZone(innerDivId);
+		}
+	}
+}

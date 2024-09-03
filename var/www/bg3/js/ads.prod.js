@@ -73,7 +73,6 @@ function loadAdScript(provider) {
 function rampSetup() {
 	const classes = document.body.classList;
 	if (!classes.contains('skin-citizen')) {
-		console.log('Not on mobile.');
 		ramp.spaNewPage();
 		return;
 	}
@@ -101,34 +100,26 @@ function rampSetup() {
 	}
 
 	function setFooter(path, type) {
-		console.log(`New Footer: ${path}/${type}`);
-
 		if (ramp.settings.cp == path) {
 			setType();
 		} else {
-			console.log('setpath');
 			ramp.setPath(path).then(setType);
 		}
 
 		function setType() {
-			console.log('settype');
 			if (newPage) {
-				console.log('newpage');
 				newPage = false;
 				ramp.spaNewPage();
 				return;
 			}
-			console.log('destroyunits');
 			ramp.destroyUnits('all').then(() => {
 				if (type == null) {
 					return;
 				}
-				console.log('addunits');
 				ramp.addUnits({
 					type: type,
 					selectorId: 'bg3wiki-footer-ad-ramp',
 				}).then(() => {
-					console.log('displayunits');
 					ramp.displayUnits();
 				});
 			});
@@ -177,7 +168,6 @@ function rampSetup() {
 function fuseSetup() {
 	const classes = document.body.classList;
 	if (!classes.contains('skin-citizen')) {
-		console.log('Not on mobile.');
 		return;
 	}
 
@@ -202,8 +192,6 @@ function fuseSetup() {
 	let footerFuseId = footerFuseIdForScreenSize();
 
 	function replaceFooterAdZone() {
-		console.log('Replacing footer fuseId to: ' + footerFuseId);
-
 		const outerDivId = 'bg3wiki-footer-ad';
 		const innerDivId = 'bg3wiki-footer-ad-fuse';
 

@@ -373,7 +373,7 @@ $wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
 		return;
 	}
 	if ( $devSite ) {
-		$html .= '<script src="/js/ads.dev.js"></script>';
+		$html .= '<script type="module" src="/js/ads.dev.js"></script>';
 	} else {
 		$html .= '<script src="/js/ads.prod.js"></script>';
 	}
