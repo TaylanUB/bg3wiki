@@ -12,6 +12,10 @@ wsudo() {
 	sudo -u www-data "$@"
 }
 
+wgit() {
+	wsudo git "$@"
+}
+
 echo
 echo
 echo ========================
@@ -21,7 +25,7 @@ echo
 echo
 
 echo 'MediaWiki core & submodules'
-wsudo git fetch --recurse-submodules
+wgit fetch --recurse-submodules
 
 for e in extensions/*/.git/
 do
@@ -30,7 +34,7 @@ do
 
 	cd "$d"
 
-	wsudo git fetch
+	wgit fetch
 
 	cd "$OLDPWD"
 done
@@ -43,7 +47,7 @@ echo ===============================
 echo
 echo
 
-wsudo git pull --recurse-submodules
+wgit pull --recurse-submodules
 
 rm vendor/.git
 wsudo composer update --no-dev
@@ -68,11 +72,16 @@ do
 
 	cd "$d"
 
-	wsudo git pull
-
-	if [ -e composer.json ]
+	if [ "$(wgit branch --show-current)" = "" ]
 	then
-		wsudo composer update --no-dev
+		echo "Detached HEAD; nothing to do."
+	else
+		wgit pull
+
+		if [ -e composer.json ]
+		then
+			wsudo composer update --no-dev
+		fi
 	fi
 
 	cd "$OLDPWD"

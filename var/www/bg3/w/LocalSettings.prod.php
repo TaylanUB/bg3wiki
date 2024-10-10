@@ -166,8 +166,7 @@ wfLoadExtensions([
 	"ConfirmEdit",
 	"ConfirmEdit/QuestyCaptcha",
 	"ContributionScores",
-	# Potentially unsafe.
-	#"CSS",
+	"CSS",
 	"DeleteBatch",
 	"DiscussionTools",
 	"Echo",
@@ -313,7 +312,6 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
 	  <div id='bg3wiki-header-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
-	    <div id='bg3wiki-header-ad-ramp'></div>
 	  </div>
 	EOF;
 };
@@ -332,7 +330,6 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	  <div id='bg3wiki-sidebar-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
-	    <div id='bg3wiki-sidebar-ad-ramp'></div>
 	  </div>
 	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
@@ -360,7 +357,6 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-footer-ad-fuse'></div>
-	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
 	EOF;
 
