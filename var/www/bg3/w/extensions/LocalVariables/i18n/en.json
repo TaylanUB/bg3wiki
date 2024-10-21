@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Daniel Werner",
+			"MGChecker"
+		]
+	},
+	"local-variables-desc": "Parser functions allowing to work with local variables in a page/template scope."
+}

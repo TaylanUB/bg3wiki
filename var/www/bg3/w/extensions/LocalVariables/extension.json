@@ -1,0 +1,30 @@
+{
+	"name": "LocalVariables",
+	"version": "1.0.0",
+	"author": "[https://www.mediawiki.org/wiki/User:TaylanKammer Taylan]",
+	"url": "https://www.mediawiki.org/wiki/Extension:LocalVariables",
+	"descriptionmsg": "local-variables-desc",
+	"license-name": "ISC",
+	"type": "parserhook",
+	"requires": {
+		"MediaWiki": ">= 1.29.0"
+	},
+	"config_prefix": "eg",
+	"config": {},
+	"Hooks": {
+		"ParserFirstCallInit": "LocalVariablesHooks::onParserFirstCallInit"
+	},
+	"MessagesDirs": {
+		"LocalVariables": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"LocalVariablesMagic": "LocalVariables.i18n.magic.php"
+	},
+	"AutoloadClasses": {
+		"ExtLocalVariables": "includes/ExtLocalVariables.php",
+		"LocalVariablesHooks": "includes/LocalVariablesHooks.php"
+	},
+	"manifest_version": 2
+}
