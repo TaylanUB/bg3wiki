@@ -156,6 +156,7 @@ if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
 wfLoadExtensions([
 	"ArrayFunctions",
 	"Arrays",
+	"AudioButton",
 	"Cargo",
 	"CategoryTree",
 	"CheckUser",
@@ -166,7 +167,7 @@ wfLoadExtensions([
 	"ConfirmEdit",
 	"ConfirmEdit/QuestyCaptcha",
 	"ContributionScores",
-	"CSS",
+#	"CSS",
 	"DeleteBatch",
 	"DiscussionTools",
 	"Echo",
@@ -207,6 +208,7 @@ wfLoadExtensions([
 	"TextExtracts",
 	"Theme",
 	"Variables",
+#	"VisualData",
 	"VisualEditor",
 	"Widgets",
 	"WikiEditor",
@@ -456,7 +458,7 @@ $wgTidyConfig = [
 ];
 
 # Useful when working on MW:Vector.css and such
-#$wgResourceLoaderMaxage['unversioned'] = 5;
+$wgResourceLoaderMaxage['unversioned'] = 5;
 
 #
 # Security
@@ -492,7 +494,8 @@ $wgCdnMaxAge = 3600;
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = 'http://bg3.wiki';
 
-# Seems to cause issues?
+# Should probably be disabled since the sidebar varies
+# depending on whether the user is logged in.
 #$wgEnableSidebarCache = true;
 #$wgSidebarCacheExpiry = 3600;
 
@@ -592,6 +595,8 @@ $wgGroupPermissions['maintainer']['editmodules'] = true;
 $wgGroupPermissions['maintainer']['editproject'] = true;
 $wgGroupPermissions['maintainer']['edittemplates'] = true;
 $wgGroupPermissions['maintainer']['recreatecargodata'] = true;
+$wgGroupPermissions['maintainer']['visualdata-caneditdata'] = true;
+$wgGroupPermissions['maintainer']['visualdata-canmanageschemas'] = true;
 
 $wgGroupPermissions['sysop']['checkuser'] = true;
 $wgGroupPermissions['sysop']['checkuser-log'] = true;

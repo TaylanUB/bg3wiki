@@ -49,6 +49,25 @@ server {
 
 	### END LibreSpeed ###
 
+	### Payment ###
+
+	location /payment {
+	}
+
+	location /payment/requests {
+		return 403;
+	}
+
+	location /payment/riddle/clients {
+		return 403;
+	}
+
+	location ~ ^/payment/.*\.php$ {
+		include snippets/run-php-direct;
+	}
+
+	### END Payment ###
+
 	# No cache for robots, sitemaps, ads.txt
 	location ~ ^/(robots|sitemap|ads\.txt) {
 	}

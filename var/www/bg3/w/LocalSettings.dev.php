@@ -156,6 +156,7 @@ if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
 wfLoadExtensions([
 	"ArrayFunctions",
 	"Arrays",
+	"AudioButton",
 	"Cargo",
 	"CategoryTree",
 	"CheckUser",
@@ -166,7 +167,7 @@ wfLoadExtensions([
 	"ConfirmEdit",
 	"ConfirmEdit/QuestyCaptcha",
 	"ContributionScores",
-	"CSS",
+#	"CSS",
 	"DeleteBatch",
 	"DiscussionTools",
 	"Echo",
@@ -207,6 +208,7 @@ wfLoadExtensions([
 	"TextExtracts",
 	"Theme",
 	"Variables",
+#	"VisualData",
 	"VisualEditor",
 	"Widgets",
 	"WikiEditor",
@@ -312,6 +314,7 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
 	  <div id='bg3wiki-header-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
+	    <div id='bg3wiki-header-ad-ramp'></div>
 	  </div>
 	EOF;
 };
@@ -330,6 +333,7 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	  <div id='bg3wiki-sidebar-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
+	    <div id='bg3wiki-sidebar-ad-ramp'></div>
 	  </div>
 	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
@@ -357,6 +361,7 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-footer-ad-fuse'></div>
+	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
 	EOF;
 
@@ -492,7 +497,8 @@ $wgCdnMaxAge = 3600;
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = 'http://bg3.wiki';
 
-# Seems to cause issues?
+# Should probably be disabled since the sidebar varies
+# depending on whether the user is logged in.
 #$wgEnableSidebarCache = true;
 #$wgSidebarCacheExpiry = 3600;
 
@@ -592,6 +598,8 @@ $wgGroupPermissions['maintainer']['editmodules'] = true;
 $wgGroupPermissions['maintainer']['editproject'] = true;
 $wgGroupPermissions['maintainer']['edittemplates'] = true;
 $wgGroupPermissions['maintainer']['recreatecargodata'] = true;
+$wgGroupPermissions['maintainer']['visualdata-caneditdata'] = true;
+$wgGroupPermissions['maintainer']['visualdata-canmanageschemas'] = true;
 
 $wgGroupPermissions['sysop']['checkuser'] = true;
 $wgGroupPermissions['sysop']['checkuser-log'] = true;

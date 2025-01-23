@@ -3,7 +3,8 @@
  * Use window.matchMedia to make sure we're in sync with CSS.
  */
 
-const fusetag = window.fusetag = { que: [ fuseSetup ] };
+const fusetag = window.fusetag || (window.fusetag = { que: [] });
+fusetag.que.push(fuseSetup);
 
 function matchMinWH(w, h) {
 	return matchMedia(

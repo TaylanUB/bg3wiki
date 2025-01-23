@@ -2,9 +2,11 @@
 
 set -e
 
-if [ "$(pwd)" != /var/www/bg3/w ]
+MW_PATH=/var/www/bg3/w
+
+if [ "$(pwd)" != "$MW_PATH" ]
 then
-	echo 'Run this from: /var/www/bg3/w'
+	echo "Run this from: $MW_PATH"
 	exit 1
 fi
 
@@ -23,21 +25,22 @@ echo == Pre-fetching repos ==
 echo ========================
 echo
 echo
+echo 'MediaWiki Core & Submodules'
+echo
 
-echo 'MediaWiki core & submodules'
 wgit fetch --recurse-submodules
 
-for e in extensions/*/.git/
-do
-	d=${e%/.git/}
-	printf '%s\n' "$d"
+echo
+echo 'MediaWiki Extensions'
+echo
 
-	cd "$d"
+for d in extensions/*/.git/
+do (
+	cd "$d/.."
+	printf 'Extension: %s\n' "$(basename "$PWD")"
 
 	wgit fetch
-
-	cd "$OLDPWD"
-done
+) done
 
 echo
 echo
@@ -47,12 +50,25 @@ echo ===============================
 echo
 echo
 
-wgit pull --recurse-submodules
+wgit merge --ff-only
+wgit submodule update --recursive
+
+echo
+echo 'Running composer update'
+echo
 
 rm vendor/.git
 wsudo composer update --no-dev
 
+echo
+echo 'Running update maintenance script'
+echo
+
 wsudo php maintenance/update.php --quick
+
+echo
+echo 'PHP opcache reset'
+echo
 
 curl http://localhost/php-control?opcache_reset
 
@@ -65,37 +81,49 @@ echo ===========================
 echo
 echo
 
-for e in extensions/*/.git/
-do
-	d=${e%/.git/}
-	printf '\n%s\n\n' "$d"
-
-	cd "$d"
+for d in extensions/*/.git/
+do (
+	cd "$d/.."
+	printf 'Extension: %s\n' "$(basename "$PWD")"
 
 	if [ "$(wgit branch --show-current)" = "" ]
 	then
 		echo "Detached HEAD; nothing to do."
 	else
-		wgit pull
+		wgit merge --ff-only
 
 		if [ -e composer.json ]
 		then
+			echo
+			echo 'Running composer update'
+			echo
+
 			wsudo composer update --no-dev
 		fi
 	fi
 
-	cd "$OLDPWD"
-done
+	echo
+) done
+
+echo
+echo 'Running update maintenance script'
+echo
 
 # In case an extension requires it
 wsudo php maintenance/update.php --quick
+
+echo
+echo 'PHP opcache reset'
+echo
 
 curl http://localhost/php-control?opcache_reset
 
 echo
 echo
-echo ======================
-echo == All updates done ==
-echo ======================
+echo ==============
+echo == All done ==
+echo ==============
 echo
+echo 'Third-party skins not updated automatically.'
+echo 'Update complex skins like Citizen manually, and test thoroughly!'
 echo

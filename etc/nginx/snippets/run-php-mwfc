@@ -19,6 +19,8 @@ fastcgi_cache_use_stale error timeout http_500 http_503;
 
 fastcgi_ignore_headers Vary;
 
+fastcgi_param HTTP_ACCEPT_LANGUAGE en-US;
+
 fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
 
 # Note: This doesn't correspond to the upstream FastCGI docs!
