@@ -284,7 +284,7 @@ function bg3wikiAdsEnabledNs( $ns ) {
 # Add CSS class to body depending on whether ads should be enabled
 $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 	if ( bg3wikiAdsEnabled( $out ) ) {
-		$attrs['class'] .= ' mw-ads-enabled';
+		$attrs['class'] .= ' mw-ads-enabled mw-ads-ramp';
 	} else {
 		$attrs['class'] .= ' mw-ads-disabled';
 	}
@@ -314,6 +314,7 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
 	  <div id='bg3wiki-header-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
+	    <div id='bg3wiki-header-ad-ramp'></div>
 	  </div>
 	EOF;
 };
@@ -332,6 +333,7 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	  <div id='bg3wiki-sidebar-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
+	    <div id='bg3wiki-sidebar-ad-ramp'></div>
 	  </div>
 	  <p id='bg3wiki-ad-provider-notice'></p>
 	EOF;
@@ -359,6 +361,7 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
 	    <div id='bg3wiki-footer-ad-fuse'></div>
+	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
 	EOF;
 

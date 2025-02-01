@@ -284,7 +284,7 @@ function bg3wikiAdsEnabledNs( $ns ) {
 # Add CSS class to body depending on whether ads should be enabled
 $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 	if ( bg3wikiAdsEnabled( $out ) ) {
-		$attrs['class'] .= ' mw-ads-enabled';
+		$attrs['class'] .= ' mw-ads-enabled mw-ads-ramp';
 	} else {
 		$attrs['class'] .= ' mw-ads-disabled';
 	}
