@@ -5,7 +5,7 @@ map "" $bg3log {
 
 map $request_uri $bg3log_pagehits {
 	default    0;
-	"~^/wiki/" 1;
+	"~^/wiki/" 0; # disabled for now
 }
 
 log_format bg3wiki_pagehits

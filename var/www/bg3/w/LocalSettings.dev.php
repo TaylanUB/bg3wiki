@@ -37,9 +37,9 @@ $wgResourceBasePath = $wgScriptPath;
 ## The URL paths to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
 $wgLogos = [
-	'1x'   => "/static/logo-135px.webp",
-	'1.5x' => "/static/logo-202px.webp",
-	'2x'   => "/static/logo-270px.webp",
+	'1x'   => "/static/logo-192px.webp",
+	'1.5x' => "/static/logo-288px.webp",
+	'2x'   => "/static/logo-384px.webp",
 ];
 
 ## UPO means: this is also a user preference option
@@ -169,6 +169,7 @@ wfLoadExtensions([
 	"ContributionScores",
 #	"CSS",
 	"DeleteBatch",
+	"Details",
 	"DiscussionTools",
 	"Echo",
 	"Elastica",
@@ -310,10 +311,11 @@ $wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
 	if ( $skin->getSkinName() !== "vector" ) {
 		return;
 	}
+	# To re-enable publift ads, put this under the ramp one:
+	# <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
 	$html .= <<< EOF
 	  <div id='bg3wiki-header-ad'>
 	    <p>Ad placeholder</p>
-	    <div id='bg3wiki-header-ad-fuse' data-fuse='23198268145'></div>
 	    <div id='bg3wiki-header-ad-ramp'></div>
 	  </div>
 	EOF;
@@ -329,10 +331,11 @@ $wgHooks['SkinAfterPortlet'][] = function( $skin, $portletName, &$html ) {
 	if ( $portletName !== "Advertisement" ) {
 		return;
 	}
+	# To re-enable publift ads, put this under the ramp one:
+	# <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
 	$html .= <<< EOF
 	  <div id='bg3wiki-sidebar-ad'>
 	    <p>Ad placeholder</p>
-	    <div id='bg3wiki-sidebar-ad-fuse' data-fuse='23198268148'></div>
 	    <div id='bg3wiki-sidebar-ad-ramp'></div>
 	  </div>
 	  <p id='bg3wiki-ad-provider-notice'></p>
@@ -357,10 +360,11 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 	if ( $skin->getSkinName() !== "citizen" ) {
 		return;
 	}
+	# To re-enable publift ads, put this under the ramp one:
+	# <div id='bg3wiki-footer-ad-fuse'></div>
 	$html .= <<< EOF
 	  <div id='bg3wiki-footer-ad'>
 	    <p>Ad placeholder</p>
-	    <div id='bg3wiki-footer-ad-fuse'></div>
 	    <div id='bg3wiki-footer-ad-ramp'></div>
 	  </div>
 	EOF;
@@ -540,8 +544,8 @@ $wgSMTP = [
 # Autoconfirm
 #
 
-$wgAutoConfirmAge = 10;
-$wgAutoConfirmCount = 3;
+$wgAutoConfirmAge = 24 * 60 * 60;
+$wgAutoConfirmCount = 15;
 
 $wgGroupPermissions['autoconfirmed']['autopatrol'] = true;
 # Extension:ConfirmEdit
@@ -589,7 +593,12 @@ $wgRestrictionLevels[] = 'edittemplates';
 $wgRestrictionLevels[] = 'protect';
 
 $wgGroupPermissions['*']['createpage'] = false;
-$wgGroupPermissions['user']['createpage'] = true;
+$wgGroupPermissions['autoconfirmed']['createpage'] = true;
+
+$wgGroupPermissions['user']['upload'] = false;
+$wgGroupPermissions['user']['reupload'] = false;
+$wgGroupPermissions['autoconfirmed']['upload'] = true;
+$wgGroupPermissions['autoconfirmed']['reupload'] = true;
 
 $wgGroupPermissions['maintainer']['delete'] = true;
 $wgGroupPermissions['maintainer']['patrol'] = true;
@@ -646,8 +655,8 @@ $wgCaptchaTriggers['badlogin']      = true;
 
 $wgCargoDBtype = "mysql";
 $wgCargoDBserver = "localhost";
-$wgCargoDBname = "bg3wiki-cargo";
-$wgCargoDBuser = "bg3wiki-cargo";
+$wgCargoDBname = "bg3wiki_cargo";
+$wgCargoDBuser = "bg3wiki_cargo";
 $wgCargoMaxQueryLimit = 5000;
 #$wgCargoDBpassword = "(set in secrets.php)";
 
