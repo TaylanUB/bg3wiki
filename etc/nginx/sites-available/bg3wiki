@@ -12,6 +12,11 @@ log_format bg3wiki_pagehits
 	'$time_iso8601 $remote_addr $status '
 	'$request_uri $http_referer "$http_user_agent"';
 
+geo $geo_block {
+	default		0;
+	47.79.0.0/16	1;
+}
+
 server {
 	listen 443 ssl;
 	server_name bg3.wiki;
@@ -19,7 +24,7 @@ server {
 	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
 	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
 
-	access_log /var/log/nginx/bg3wiki-access.log combined gzip if=$bg3log;
+	access_log /var/log/nginx/bg3wiki-access.log combined if=$bg3log;
 	error_log /var/log/nginx/bg3wiki-error.log;
 
 	access_log /var/log/nginx/bg3wiki-pagehits.log
@@ -68,8 +73,13 @@ server {
 
 	### END Payment ###
 
-	# No cache for robots, sitemaps, ads.txt
-	location ~ ^/(robots|sitemap|ads\.txt) {
+	# ads.txt from Playwire
+	location = /ads.txt {
+		return 307 https://config.playwire.com/dyn_ads/1025372/75208/ads.txt;
+	}
+
+	# No cache for robots, sitemaps
+	location ~ ^/(robots|sitemap) {
 	}
 
 	# Static assets outside of MediaWiki
@@ -80,6 +90,11 @@ server {
 	# Custom CSS and JS code
 	location ~ ^/(css|js)/ {
 		include headers/cache-5min;
+	}
+
+	# Custom PHP scripts
+	location /php/ {
+		include snippets/run-php-mwfc;
 	}
 
 	# Root URL is main page

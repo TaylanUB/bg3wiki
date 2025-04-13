@@ -52,7 +52,6 @@ async function rampSetup() {
 	const footerTypes = [
 		[ matchMinWH(970, 800), 'standard_iab_foot3' ],
 		[ matchMinWH(728, 800), 'standard_iab_foot2' ],
-		[ matchMinWH(468, 600), 'standard_iab_foot1' ],
 		[ matchMinWH(320, 600), 'standard_iab_foot1' ],
 	];
 

@@ -3,6 +3,20 @@ map "" $bg3log {
 	default 0;
 }
 
+map $request_uri $bg3log_pagehits {
+	default    0;
+	"~^/wiki/" 0; # disabled for now
+}
+
+#log_format bg3wiki_pagehits
+#	'$time_iso8601 $remote_addr $status '
+#	'$request_uri $http_referer "$http_user_agent"';
+
+geo $geo_block {
+	default		0;
+	47.79.0.0/16	1;
+}
+
 server {
 	listen 443 ssl;
 	server_name dev.bg3.wiki;
@@ -10,8 +24,11 @@ server {
 	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
 	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
 
-	access_log /var/log/nginx/dev-bg3wiki-access.log combined gzip if=$bg3log;
+	access_log /var/log/nginx/dev-bg3wiki-access.log combined if=$bg3log;
 	error_log /var/log/nginx/dev-bg3wiki-error.log;
+
+	access_log /var/log/nginx/dev-bg3wiki-pagehits.log
+		bg3wiki_pagehits if=$bg3log_pagehits;
 
 	log_not_found off;
 
@@ -37,8 +54,32 @@ server {
 
 	### END LibreSpeed ###
 
-	# No cache for robots, sitemaps, ads.txt
-	location ~ ^/(robots|sitemap|ads\.txt) {
+	### Payment ###
+
+	location /payment {
+	}
+
+	location /payment/requests {
+		return 403;
+	}
+
+	location /payment/riddle/clients {
+		return 403;
+	}
+
+	location ~ ^/payment/.*\.php$ {
+		include snippets/run-php-direct;
+	}
+
+	### END Payment ###
+
+	# ads.txt from Playwire
+	location = /ads.txt {
+		return 307 https://config.playwire.com/dyn_ads/1025372/75208/ads.txt;
+	}
+
+	# No cache for robots, sitemaps
+	location ~ ^/(robots|sitemap) {
 	}
 
 	# Static assets outside of MediaWiki
@@ -49,6 +90,11 @@ server {
 	# Custom CSS and JS code
 	location ~ ^/(css|js)/ {
 		# No cache on dev subdomain
+	}
+
+	# Custom PHP scripts
+	location /php/ {
+		include snippets/run-php-direct;
 	}
 
 	# Root URL is main page

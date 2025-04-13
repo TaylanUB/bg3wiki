@@ -35,12 +35,22 @@ echo 'MediaWiki Extensions'
 echo
 
 for d in extensions/*/.git/
-do (
+do
+(
 	cd "$d/.."
 	printf 'Extension: %s\n' "$(basename "$PWD")"
 
 	wgit fetch
-) done
+)
+done
+
+if [ "$1" != '--merge' ]
+then
+	echo
+	echo 'Done fetching; not merging since --merge argument not supplied.'
+	echo
+	exit
+fi
 
 echo
 echo

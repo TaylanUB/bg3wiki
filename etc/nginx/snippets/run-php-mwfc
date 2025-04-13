@@ -7,6 +7,10 @@
 # See conf.d/mediawiki-fcgi.conf for the setup this depends on.
 #
 
+if ($geo_block) {
+	return 444;
+}
+
 include /etc/nginx/fastcgi.conf;
 
 #access_log /var/log/nginx/mwcache-stats.log mwfc_stats gzip;
