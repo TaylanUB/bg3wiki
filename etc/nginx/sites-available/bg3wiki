@@ -14,7 +14,7 @@ log_format bg3wiki_pagehits
 
 geo $geo_block {
 	default		0;
-	47.79.0.0/16	1;
+	#47.79.0.0/16	1;
 }
 
 server {

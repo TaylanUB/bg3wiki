@@ -3,6 +3,9 @@
  * Use window.matchMedia to make sure we're in sync with CSS.
  */
 
+const fusetag = window.fusetag || (window.fusetag = { que: [] });
+const ramp = window.ramp || (window.ramp = { que: [] });
+
 function matchMinWH(w, h) {
 	return matchMedia(
 		`(min-width: ${w}px) and (min-height: ${h}px)`
@@ -24,23 +27,46 @@ if (matcher.matches) {
 }
 
 function enableAds() {
-	const ramp = window.ramp || (window.ramp = { que: [] });
-	ramp.passiveMode = true;
-	ramp.que.push(rampSetup);
+	/*
+	let provider = sessionStorage.getItem('ad_provider');
+	if (provider == null) {
+		const query = new URLSearchParams(location.search);
+		provider = query.get('ad_provider');
+		if (provider == null) {
+			provider = Math.random() < 0.5 ? 'playwire' : 'publift';
+		}
+		sessionStorage.setItem('ad_provider', provider);
+	}
+	*/
+	let provider = 'playwire';
+
+	const notice = document.getElementById('bg3wiki-ad-provider-notice');
+	if (notice) {
+		notice.innerText = 'Ads provided by: ' + provider;
+	}
+
+	loadAdScript(provider);
+}
+
+function loadAdScript(provider) {
+	let src;
+	if (provider == 'playwire') {
+		src = '//cdn.intergient.com/1025372/75208/ramp.js';
+		ramp.que.push(rampSetup);
+		ramp.passiveMode = true;
+	} else {
+		src = '//cdn.fuseplatform.net/publift/tags/2/3741/fuse.js';
+		fusetag.que.push(fuseSetup);
+	}
 
 	const script = document.createElement('script');
 	script.async = true;
-	script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
+	script.src = src;
 	script.onerror = function(){
 		const classes = document.body.classList;
 		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
 	};
 	document.body.appendChild(script);
-
-	const notice = document.getElementById('bg3wiki-ad-provider-notice');
-	if (notice) {
-		notice.innerText = 'Ads provided by: playwire';
-	}
 }
 
 async function rampSetup() {
@@ -52,6 +78,7 @@ async function rampSetup() {
 	const footerTypes = [
 		[ matchMinWH(970, 800), 'standard_iab_foot3' ],
 		[ matchMinWH(728, 800), 'standard_iab_foot2' ],
+		[ matchMinWH(468, 600), 'standard_iab_foot1' ],
 		[ matchMinWH(320, 600), 'standard_iab_foot1' ],
 	];
 
@@ -91,5 +118,65 @@ async function rampSetup() {
 			selectorId: 'bg3wiki-footer-ad-ramp',
 		});
 		await ramp.displayUnits();
+	}
+}
+
+function fuseSetup() {
+	const classes = document.body.classList;
+	if (!classes.contains('skin-citizen')) {
+		return;
+	}
+
+	const footerFuseIds = [
+		[ matchMinWH(970, 800), '23201541515' ],
+		[ matchMinWH(728, 800), '23200582344' ],
+		[ matchMinWH(468, 600), '23200580337' ],
+		[ matchMinWH(320, 600), '23200581156' ],
+	];
+
+	function footerFuseIdForScreenSize() {
+		for (const entry of footerFuseIds)
+			if (entry[0].matches)
+				return entry[1];
+	}
+
+	let footerFuseId = footerFuseIdForScreenSize();
+	replaceFooterAdZone();
+
+	function onResize() {
+		const newFuseId = footerFuseIdForScreenSize();
+		if (footerFuseId != newFuseId) {
+			footerFuseId = newFuseId;
+			fusetag.que.push(replaceFooterAdZone);
+		}
+	}
+
+	let timeout;
+	const delay = 200;
+	function debouncedOnResize() {
+		clearTimeout(timeout);
+		timeout = setTimeout(onResize, delay);
+	}
+
+	addEventListener('resize', debouncedOnResize);
+
+	function replaceFooterAdZone() {
+		const outerDivId = 'bg3wiki-footer-ad';
+		const innerDivId = 'bg3wiki-footer-ad-fuse';
+
+		const outerDiv = document.getElementById(outerDivId);
+		const innerDiv = document.getElementById(innerDivId);
+		if (innerDiv != null) {
+			outerDiv.removeChild(innerDiv);
+		}
+
+		if (footerFuseId) {
+			const newDiv = document.createElement('div');
+			newDiv.id = innerDivId;
+			newDiv.setAttribute('data-fuse', footerFuseId);
+			outerDiv.appendChild(newDiv);
+
+			fusetag.registerZone(innerDivId);
+		}
 	}
 }

@@ -146,7 +146,7 @@ if ( ($_SERVER['SERVER_NAME'] ?? '') === 'dev.bg3.wiki' ) {
 }
 
 if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
-	#$wgDebugLogFile = "/tmp/mw-debug.log";
+	$wgDebugLogFile = "/tmp/mw-debug.log";
 	$wgDebugToolbar = true;
 	$wgShowExceptionDetails = true;
 	$wgShowDBErrorBacktrace = true;
@@ -486,7 +486,7 @@ $wgJobRunRate = 0;
 $wgInvalidateCacheOnLocalSettingsChange = false;
 
 # Update this to invalidate caches manually instead
-$wgCacheEpoch = 20250411055500;
+$wgCacheEpoch = 20250414095500;
 
 # Parser cache lasts 10 days
 $wgParserCacheExpiryTime = 10 * 24 * 60 * 60;
@@ -663,15 +663,15 @@ $wgGroupPermissions['*']['runcargoqueries'] = false;
 $wgGroupPermissions['user']['runcargoqueries'] = true;
 $wgGroupPermissions['maintainer']['recreatecargodata'] = true;
 
-$wgAPIModules['cargofields'] = 'ApiDisabled';
-$wgAPIModules['cargoformatparams'] = 'ApiDisabled';
-$wgAPIModules['cargoquery'] = 'ApiDisabled';
-$wgAPIModules['cargoqueryautocomplete'] = 'ApiDisabled';
-$wgAPIModules['cargorecreatedata'] = 'ApiDisabled';
-$wgAPIModules['cargorecreatespecialdata'] = 'ApiDisabled';
-$wgAPIModules['cargorecreatespecialtable'] = 'ApiDisabled';
-$wgAPIModules['cargorecreatetables'] = 'ApiDisabled';
-$wgAPIModules['cargotables'] = 'ApiDisabled';
+#$wgAPIModules['cargofields'] = 'ApiDisabled';
+#$wgAPIModules['cargoformatparams'] = 'ApiDisabled';
+#$wgAPIModules['cargoquery'] = 'ApiDisabled';
+#$wgAPIModules['cargoqueryautocomplete'] = 'ApiDisabled';
+#$wgAPIModules['cargorecreatedata'] = 'ApiDisabled';
+#$wgAPIModules['cargorecreatespecialdata'] = 'ApiDisabled';
+#$wgAPIModules['cargorecreatespecialtable'] = 'ApiDisabled';
+#$wgAPIModules['cargorecreatetables'] = 'ApiDisabled';
+#$wgAPIModules['cargotables'] = 'ApiDisabled';
 
 #
 # Contribution Scores
@@ -800,6 +800,7 @@ $wgPFEnableStringFunctions = true;
 # As well as this one:
 # https://www.mediawiki.org/wiki/Topic:Uvkion1a0f5xqa07
 $wgPopupsTextExtractsIntroOnly = false;
+$wgPopupsReferencePreviewsBetaFeature = false;
 
 #
 # Scribunto
@@ -856,6 +857,77 @@ $wgWikiSeoOverwritePageImage = true;
 $wgTwitterCardType = 'summary';
 $wgTwitterSiteHandle = "@bg3_wiki";
 
-#
-# END OF FILE
-#
+########################
+#                      #
+# Extension:Moderation #
+#                      #
+########################
+
+# This needs to be enabled after everything else
+wfLoadExtension("Moderation");
+
+$wgGroupPermissions['autoconfirmed']['skip-moderation'] = true;
+$wgGroupPermissions['autoconfirmed']['skip-move-moderation'] = true;
+$wgGroupPermissions['maintainer']['moderation'] = true;
+
+$wgModerationOnlyInNamespaces = [
+	NS_MAIN, NS_FILE, NS_GUIDE, NS_MODDING, NS_MODS
+];
+
+$wgHooks['ModerationPending'][] = function ( array $fields, $id )
+	use ( $discordRCFeedUntrustedWebhookUri )
+{
+	$mws = MediaWiki\MediaWikiServices::getInstance();
+
+	$uri = "https://bg3.wiki/wiki/Special:Moderation?modaction=show&modid=$id";
+
+	$user = $fields['mod_user_text'];
+	$page = $fields['mod_title'];
+	$note = $fields['mod_comment'];
+
+	$ns = $fields['mod_namespace'];
+	if ( $ns != NS_MAIN ) {
+		$nsName = $mws->getNamespaceInfo()->getCanonicalName( $ns );
+		$page = "$nsName:$page";
+	}
+
+	$oldLen = $fields['mod_old_len'];
+	$newLen = $fields['mod_new_len'];
+	$lenDiff = $newLen - $oldLen;
+	$lenDiffText = "";
+	if ( $lenDiff < 0 ) {
+		$lenDiffText = "$lenDiff bytes";
+	} else {
+		$lenDiffText = "+$lenDiff bytes";
+	}
+	if ( abs( $lenDiff ) > 100 ) {
+		$lenDiffText = "**$lenDiffText**";
+	}
+
+	$userPage = str_replace( ' ', '_', $user );
+	$userLink = "[$user](https://bg3.wiki/wiki/User:$userPage)";
+	$pageName = str_replace( '_', ' ', $page );
+	$pageLink = "[$pageName](https://bg3.wiki/wiki/$page)";
+	$diffLink = "[View / Moderate]($uri)";
+
+	$discordMessage = "$userLink | $pageLink | $lenDiffText | $diffLink";
+	if ( $note ) {
+		$discordMessage .= " | $note";
+	}
+
+	$postData = [
+		'content' => $discordMessage,
+		'flags' => 4 // SUPPRESS_EMBEDS
+	];
+
+	$mws->getHttpRequestFactory()->post(
+		$discordRCFeedUntrustedWebhookUri,
+		[ 'postData' => $postData ]
+	);
+};
+
+
+// Local Variables:
+// indent-tabs-mode: t
+// tab-width: 4
+// End:
