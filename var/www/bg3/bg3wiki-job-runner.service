@@ -1,0 +1,14 @@
+[Unit]
+Description=BG3 Wiki Job Runner
+
+[Service]
+ExecStart=/var/www/bg3/job-runner.sh
+Nice=10
+ProtectSystem=full
+User=www-data
+OOMScoreAdjust=200
+StandardOutput=append:/var/log/bg3wiki-job-runner.log
+StandardError=append:/var/log/bg3wiki-job-runner.log
+
+[Install]
+WantedBy=multi-user.target
