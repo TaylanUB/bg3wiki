@@ -13,7 +13,7 @@ if ($geo_block) {
 
 include /etc/nginx/fastcgi.conf;
 
-#access_log /var/log/nginx/mwcache-stats.log mwfc_stats gzip;
+#access_log /var/log/nginx/mwfc-stats.log mwfc_stats;
 
 fastcgi_pass php_fpm;
 
@@ -21,10 +21,13 @@ fastcgi_cache MW;
 fastcgi_cache_valid 1h;
 fastcgi_cache_use_stale error timeout http_500 http_503;
 
+# Ignore Vary because we took care of everything ourselves.
 fastcgi_ignore_headers Vary;
 
+# Anon visitors only get English.
 fastcgi_param HTTP_ACCEPT_LANGUAGE en-US;
 
+# Variable $mwfc_bypass_cookie defined in MWFC setup file.
 fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
 
 # Note: This doesn't correspond to the upstream FastCGI docs!
@@ -33,9 +36,6 @@ fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
 #   libnginx-mod-http-cache-purge
 #
 # Whose documentation can be found here:
-#   https://github.com/FRiCKLE/ngx_cache_purge
-#
-# Or here if you're using this fork:
 #   https://github.com/nginx-modules/ngx_cache_purge
 #
 fastcgi_cache_purge PURGE from 127.0.0.0/8;

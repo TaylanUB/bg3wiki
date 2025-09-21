@@ -5,17 +5,12 @@ map "" $bg3log {
 
 map $request_uri $bg3log_pagehits {
 	default    0;
-	"~^/wiki/" 0; # disabled for now
+	"~^/wiki/" 0; # toggle page-hit logging
 }
 
 log_format bg3wiki_pagehits
 	'$time_iso8601 $remote_addr $status '
 	'$request_uri $http_referer "$http_user_agent"';
-
-geo $geo_block {
-	default		0;
-	#47.79.0.0/16	1;
-}
 
 server {
 	listen 443 ssl;
@@ -155,6 +150,7 @@ server {
 	}
 }
 
+# On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
 server {
 	listen 80;
 	server_name bg3.wiki www.bg3.wiki;
@@ -169,6 +165,7 @@ server {
 	}
 }
 
+# Redirect erroneous www. subdomain requests to main domain.
 server {
 	listen 443 ssl;
 	server_name www.bg3.wiki;

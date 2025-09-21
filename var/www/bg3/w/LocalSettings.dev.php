@@ -29,7 +29,7 @@ $wgScriptPath = "/w";
 $wgArticlePath = "/wiki/$1";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "https://bg3.wiki";
+$wgServer = "https://" . ($_SERVER['SERVER_NAME'] ?? "bg3.wiki");
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -137,13 +137,11 @@ $wgDiff3 = "/usr/bin/diff3";
 ################################################################################
 ################################################################################
 
-$devSite = false;
-$debugMode = false;
+#$wgShowExceptionDetails = true;
+#$wgShowDBErrorBacktrace = true;
+#$wgShowSQLErrors = true;
 
-if ( ($_SERVER['SERVER_NAME'] ?? '') === 'dev.bg3.wiki' ) {
-	$devSite = true;
-	$wgServer = "https://dev.bg3.wiki";
-}
+$devSite = ($_SERVER['SERVER_NAME'] ?? '') === 'dev.bg3.wiki';
 
 if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
 	$wgDebugLogFile = "/tmp/mw-debug.log";
@@ -183,6 +181,7 @@ wfLoadExtensions([
 	#"LinkSuggest",
 	"Linter",
 	"LocalVariables",
+	"Lockdown",
 	"Loops",
 	"MassEditRegex",
 	"Math",
@@ -200,7 +199,7 @@ wfLoadExtensions([
 	"Scribunto",
 	"SimpleBatchUpload",
 	"SpamBlacklist",
-	"SyntaxHighlightThemes",
+#	"SyntaxHighlightThemes",
 	"SyntaxHighlight_GeSHi",
 	"TabberNeue",
 	"TemplateData",
@@ -245,9 +244,9 @@ $wgHooks['SkinAddFooterLinks'][] = function ( $skin, $key, &$links ) {
 	if ( $key !== 'places' ) {
 		return;
 	}
-	$links['copyright'] = $skin->footerLink(
-		'bg3wiki-copyrights-text',
-		'bg3wiki-copyrights-page'
+	$links['copyright'] = Html::rawElement( 'a',
+		[ 'href' => $skin->msg( 'bg3wiki-copyrights-text' ) ],
+		$skin->msg( 'bg3wiki-copyrights-page' )
 	);
 };
 
@@ -486,7 +485,7 @@ $wgJobRunRate = 0;
 $wgInvalidateCacheOnLocalSettingsChange = false;
 
 # Update this to invalidate caches manually instead
-$wgCacheEpoch = 20250414095500;
+$wgCacheEpoch = 20250917193500;
 
 # Parser cache lasts 10 days
 $wgParserCacheExpiryTime = 10 * 24 * 60 * 60;
@@ -633,6 +632,8 @@ $wgNamespaceProtection[NS_MODULE] = ['editmodules'];
 # CAPTCHA
 #
 
+$wgCaptchaClass = 'QuestyCaptcha';
+
 $wgCaptchaQuestions = [
 	"Which class plays instruments? (Log in to skip CAPTCHA.)" => "bard",
 	"Which class uses nature magic? (Log in to skip CAPTCHA.)" => "druid",
@@ -753,6 +754,15 @@ $wgJsonConfigs['Map.JsonConfig']['remote'] = [
 ];
 
 #
+# Lockdown
+#
+
+# Bots keep getting lost in the endless maze of links,
+# causing server load and bloating the Nginx cache.
+$wgSpecialPageLockdown['Recentchanges'] = [ 'user' ];
+$wgSpecialPageLockdown['Recentchangeslinked'] = [ 'user' ];
+
+#
 # Loops
 #
 
@@ -779,6 +789,9 @@ $wgMFLazyLoadImages = [
 	'beta' => false,
 	'base' => false,
 ];
+
+# Don't strip srcset from img tags
+$wgMFStripResponsiveImages = false;
 
 #
 # PageImages
@@ -875,11 +888,11 @@ $wgModerationOnlyInNamespaces = [
 ];
 
 $wgHooks['ModerationPending'][] = function ( array $fields, $id )
-	use ( $discordRCFeedUntrustedWebhookUri )
+	use ( $wgServer, $discordRCFeedUntrustedWebhookUri )
 {
 	$mws = MediaWiki\MediaWikiServices::getInstance();
 
-	$uri = "https://bg3.wiki/wiki/Special:Moderation?modaction=show&modid=$id";
+	$uri = "$wgServer/wiki/Special:Moderation?modaction=show&modid=$id";
 
 	$user = $fields['mod_user_text'];
 	$page = $fields['mod_title'];
@@ -905,9 +918,9 @@ $wgHooks['ModerationPending'][] = function ( array $fields, $id )
 	}
 
 	$userPage = str_replace( ' ', '_', $user );
-	$userLink = "[$user](https://bg3.wiki/wiki/User:$userPage)";
+	$userLink = "[$user]($wgServer/wiki/User:$userPage)";
 	$pageName = str_replace( '_', ' ', $page );
-	$pageLink = "[$pageName](https://bg3.wiki/wiki/$page)";
+	$pageLink = "[$pageName]($wgServer/wiki/$page)";
 	$diffLink = "[View / Moderate]($uri)";
 
 	$discordMessage = "$userLink | $pageLink | $lenDiffText | $diffLink";

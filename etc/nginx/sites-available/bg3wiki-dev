@@ -12,11 +12,6 @@
 #	'$time_iso8601 $remote_addr $status '
 #	'$request_uri $http_referer "$http_user_agent"';
 
-#geo $geo_block {
-#	default		0;
-#	47.79.0.0/16	1;
-#}
-
 server {
 	listen 443 ssl;
 	server_name dev.bg3.wiki;

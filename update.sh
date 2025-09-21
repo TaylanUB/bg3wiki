@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if ! [ "$(pwd)" = /root/repo/bg3wiki ];
+if ! [ "$(pwd)" = /root/repo ];
 then
-    echo >&2 'Run this from /root/repo/bg3wiki!'
+    echo >&2 'Run this from /root/repo!'
     exit 1
 fi
 
