@@ -16,8 +16,6 @@ error_page 429 /static/http429.html;
 
 include /etc/nginx/fastcgi.conf;
 
-access_log /var/log/nginx/mwfc-stats.log mwfc_stats;
-
 fastcgi_pass php_fpm;
 
 fastcgi_cache MW;

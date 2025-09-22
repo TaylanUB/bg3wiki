@@ -1,9 +1,9 @@
 # Easily toggle logging on/off here
-#map "" $bg3log {
+#map "" $bg3_log {
 #	default 0;
 #}
 
-#map $request_uri $bg3log_pagehits {
+#map $request_uri $bg3_log_pagehits {
 #	default    0;
 #	"~^/wiki/" 0; # disabled for now
 #}
@@ -19,11 +19,12 @@ server {
 	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
 	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
 
-	access_log /var/log/nginx/dev-bg3wiki-access.log combined if=$bg3log;
+	access_log /var/log/nginx/dev-bg3wiki-access.log combined if=$bg3_log;
+	access_log /var/log/nginx/dev-bg3wiki-cache.log mwfc_stats if=$mwfc_log;
 	error_log /var/log/nginx/dev-bg3wiki-error.log;
 
 	access_log /var/log/nginx/dev-bg3wiki-pagehits.log
-		bg3wiki_pagehits if=$bg3log_pagehits;
+		bg3wiki_pagehits if=$bg3_log_pagehits;
 
 	log_not_found off;
 
@@ -154,7 +155,7 @@ server {
 	listen 80;
 	server_name dev.bg3.wiki;
 
-	access_log /var/log/nginx/dev-bg3wiki-redirect.log combined if=$bg3log;
+	access_log /var/log/nginx/dev-bg3wiki-redirect.log combined if=$bg3_log;
 	error_log /var/log/nginx/dev-bg3wiki-error.log;
 
 	include snippets/letsencrypt;

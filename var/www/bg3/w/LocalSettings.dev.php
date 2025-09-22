@@ -275,8 +275,8 @@ function bg3wikiAdsEnabledNs( $ns ) {
 	switch ( $ns ) {
 		case NS_MAIN:
 		case NS_FILE:
-		case NS_SPECIAL:
 		case NS_CATEGORY:
+		#case NS_SPECIAL:
 			return true;
 		default:
 			return false;
