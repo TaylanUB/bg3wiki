@@ -11,9 +11,12 @@ if ($geo_block) {
 	return 444;
 }
 
+limit_req zone=mwrl burst=300 nodelay;
+error_page 429 /static/http429.html;
+
 include /etc/nginx/fastcgi.conf;
 
-#access_log /var/log/nginx/mwfc-stats.log mwfc_stats;
+access_log /var/log/nginx/mwfc-stats.log mwfc_stats;
 
 fastcgi_pass php_fpm;
 
@@ -29,15 +32,5 @@ fastcgi_param HTTP_ACCEPT_LANGUAGE en-US;
 
 # Variable $mwfc_bypass_cookie defined in MWFC setup file.
 fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
-
-# Note: This doesn't correspond to the upstream FastCGI docs!
-#
-# The functionality is provided by this package:
-#   libnginx-mod-http-cache-purge
-#
-# Whose documentation can be found here:
-#   https://github.com/nginx-modules/ngx_cache_purge
-#
-fastcgi_cache_purge PURGE from 127.0.0.0/8;
 
 add_header X-Cache $upstream_cache_status always;

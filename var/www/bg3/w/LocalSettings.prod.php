@@ -17,6 +17,8 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	exit;
 }
 
+$serverName = ($_SERVER['SERVER_NAME'] ?? "bg3.wiki");
+
 $wgSitename = "bg3.wiki";
 $wgMetaNamespace = "bg3wiki";
 
@@ -29,7 +31,7 @@ $wgScriptPath = "/w";
 $wgArticlePath = "/wiki/$1";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "https://" . ($_SERVER['SERVER_NAME'] ?? "bg3.wiki");
+$wgServer = "https://$serverName";
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -141,7 +143,7 @@ $wgDiff3 = "/usr/bin/diff3";
 #$wgShowDBErrorBacktrace = true;
 #$wgShowSQLErrors = true;
 
-$devSite = ($_SERVER['SERVER_NAME'] ?? '') === 'dev.bg3.wiki';
+$devSite = ($serverName === 'dev.bg3.wiki');
 
 if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
 	$wgDebugLogFile = "/tmp/mw-debug.log";
@@ -498,7 +500,7 @@ $wgCdnMaxAge = 3600;
 # Make MediaWiki send PURGE requests to Nginx
 # Note that this implicitly uses port 1080
 $wgCdnServers = [ '127.0.0.1' ];
-$wgInternalServer = 'http://bg3.wiki';
+$wgInternalServer = "http://$serverName";
 
 # Should probably be disabled since the sidebar varies
 # depending on whether the user is logged in.
@@ -759,8 +761,11 @@ $wgJsonConfigs['Map.JsonConfig']['remote'] = [
 
 # Bots keep getting lost in the endless maze of links,
 # causing server load and bloating the Nginx cache.
+$wgSpecialPageLockdown['Listusers'] = [ 'user' ];
+$wgSpecialPageLockdown['Log'] = [ 'user' ];
 $wgSpecialPageLockdown['Recentchanges'] = [ 'user' ];
 $wgSpecialPageLockdown['Recentchangeslinked'] = [ 'user' ];
+$wgSpecialPageLockdown['Whatlinkshere'] = [ 'user' ];
 
 #
 # Loops
@@ -778,7 +783,8 @@ $wgGroupPermissions['sysop']['masseditregex'] = true;
 # MobileFrontend
 #
 
-$wgMFCollapseSectionsByDefault = false;
+# Worsens CLS by a lot
+#$wgMFCollapseSectionsByDefault = false;
 
 # Non-blocking loading of Mobile.css causes Citizen colors to
 # change after the page becomes visible, which isn't nice.

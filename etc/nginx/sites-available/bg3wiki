@@ -1,6 +1,6 @@
 # Easily toggle logging on/off here
 map "" $bg3log {
-	default 0;
+	default 1;
 }
 
 map $request_uri $bg3log_pagehits {
