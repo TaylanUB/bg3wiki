@@ -31,7 +31,7 @@ function enableAds() {
 	const script = document.createElement('script');
 	script.async = true;
 	script.src = '//cdn.intergient.com/1025372/75208/ramp.js';
-	script.onerror = function(){
+	script.onerror = function() {
 		const classes = document.body.classList;
 		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
 	};

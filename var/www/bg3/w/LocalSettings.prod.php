@@ -265,9 +265,6 @@ function bg3wikiAdsEnabled( OutputPage $out ) {
 	if ( !bg3wikiAdsEnabledNs($ns) ) {
 		return false;
 	}
-	if ( isset($_COOKIE['bg3wiki_noads']) ) {
-		return false;
-	}
 	return true;
 }
 
@@ -459,6 +456,8 @@ $wgFileExtensions[] = 'mp4';
 $wgGalleryOptions['mode'] = 'packed';
 
 $wgMaxPPExpandDepth = 200;
+$wgMaxArticleSize = 4096;
+$wgAPIMaxResultSize = $wgMaxArticleSize * 4096;
 
 $wgTidyConfig = [
 	'driver' => 'RemexHtml',
@@ -466,7 +465,7 @@ $wgTidyConfig = [
 ];
 
 # Useful when working on MW:Vector.css and such
-$wgResourceLoaderMaxage['unversioned'] = 5;
+#$wgResourceLoaderMaxage['unversioned'] = 5;
 
 #
 # Security
@@ -495,7 +494,7 @@ $wgParserCacheExpiryTime = 10 * 24 * 60 * 60;
 # Allow caching via reverse proxy
 # In our case this is just the Nginx FCGI cache
 $wgUseCdn = !$devSite;
-$wgCdnMaxAge = 3600;
+$wgCdnMaxAge = 24 * 60 * 60;
 
 # Make MediaWiki send PURGE requests to Nginx
 # Note that this implicitly uses port 1080
