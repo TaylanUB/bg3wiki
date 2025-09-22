@@ -2,6 +2,6 @@ if ($geo_block) {
 	return 444;
 }
 
-include /etc/nginx/fastcgi.conf;
+include fastcgi.conf;
 
 fastcgi_pass php_fpm;

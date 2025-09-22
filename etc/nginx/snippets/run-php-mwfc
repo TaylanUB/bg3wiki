@@ -14,16 +14,13 @@ if ($geo_block) {
 limit_req zone=mwrl burst=300 nodelay;
 error_page 429 /static/http429.html;
 
-include /etc/nginx/fastcgi.conf;
+include fastcgi.conf;
 
 fastcgi_pass php_fpm;
 
-fastcgi_buffer_size 16K;
-fastcgi_buffers 16 64K;
-
 fastcgi_cache MW;
 fastcgi_cache_valid 1h;
-fastcgi_cache_min_uses 2;
+fastcgi_cache_min_uses 5;
 fastcgi_cache_use_stale error timeout http_500 http_503;
 
 # Ignore Vary because we took care of everything ourselves.
