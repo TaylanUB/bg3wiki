@@ -32,6 +32,7 @@ server {
 
 	#include headers/default;
 	#include headers/unsafe-csp;
+	include headers/strict-hsts;
 
 	# Why was this needed again?
 	# Turn on server logs and see if some clients still request it.

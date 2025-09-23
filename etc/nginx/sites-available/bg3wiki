@@ -1,6 +1,6 @@
 # Easily toggle logging on/off here
 map "" $bg3_log {
-	default 1;
+	default 0;
 }
 
 map $request_uri $bg3_log_pagehits {
@@ -32,6 +32,7 @@ server {
 
 	#include headers/default;
 	#include headers/unsafe-csp;
+	include headers/strict-hsts;
 
 	# Why was this needed again?
 	# Turn on server logs and see if some clients still request it.
