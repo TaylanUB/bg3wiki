@@ -34,12 +34,6 @@ server {
 	#include headers/unsafe-csp;
 	include headers/strict-hsts;
 
-	# Why was this needed again?
-	# Turn on server logs and see if some clients still request it.
-	location = /w/resources/assets/bg3wiki-favicon.ico {
-		return 301 /favicon.ico;
-	}
-
 	### LibreSpeed ###
 
 	location /speedtest {
@@ -123,6 +117,11 @@ server {
 	}
 	location /w/images/deleted {
 		deny all;
+	}
+
+	# Stupid bots keep requesting directories, triggering error logs
+	location ~ ^/w/images(/.*)?/$ {
+		return 404;
 	}
 
 	# MediaWiki assets (usually images)

@@ -247,8 +247,8 @@ $wgHooks['SkinAddFooterLinks'][] = function ( $skin, $key, &$links ) {
 		return;
 	}
 	$links['copyright'] = Html::rawElement( 'a',
-		[ 'href' => $skin->msg( 'bg3wiki-copyrights-text' ) ],
-		$skin->msg( 'bg3wiki-copyrights-page' )
+		[ 'href' => '/wiki/bg3wiki:Copyrights' ],
+		'Copyrights'
 	);
 };
 
@@ -273,7 +273,8 @@ function bg3wikiAdsEnabledNs( $ns ) {
 		case NS_MAIN:
 		case NS_FILE:
 		case NS_CATEGORY:
-		#case NS_SPECIAL:
+		# For Search page
+		case NS_SPECIAL:
 			return true;
 		default:
 			return false;
@@ -465,7 +466,7 @@ $wgTidyConfig = [
 ];
 
 # Useful when working on MW:Vector.css and such
-#$wgResourceLoaderMaxage['unversioned'] = 5;
+#$wgResourceLoaderMaxage['unversioned'] = 15;
 
 #
 # Security
@@ -481,6 +482,10 @@ $wgPasswordAttemptThrottle = [
 
 # We use a systemd service for this
 $wgJobRunRate = 0;
+
+# Tune job runner params
+$wgUpdateRowsPerJob = 5000;
+$wgUpdateRowsPerQuery = 250;
 
 # Don't invalidate caches every time this file is edited
 $wgInvalidateCacheOnLocalSettingsChange = false;

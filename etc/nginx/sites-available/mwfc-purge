@@ -13,7 +13,7 @@ server {
 		fastcgi_pass php_fpm;
 
 		# Select cache from which we will purge.
-		fastcgi_cache MW;
+		fastcgi_cache mwfc;
 
 		#
 		# Note: The following differs from upstream docs!

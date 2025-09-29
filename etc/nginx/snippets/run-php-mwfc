@@ -18,7 +18,7 @@ include fastcgi.conf;
 
 fastcgi_pass php_fpm;
 
-fastcgi_cache MW;
+fastcgi_cache mwfc;
 fastcgi_cache_valid 1h;
 fastcgi_cache_min_uses 5;
 fastcgi_cache_use_stale error timeout http_500 http_503;
