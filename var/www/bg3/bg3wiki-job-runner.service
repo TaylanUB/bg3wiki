@@ -16,20 +16,21 @@ User = www-data
 ProtectSystem = full
 WorkingDirectory = /var/www/bg3/w
 
-Restart = always
-RestartSec = 20ms
+# We don't want it to restart on OOM.
+Restart = on-success
+OOMScoreAdjust = 200
+
+RestartSec = 0
 
 ExecStart = php maintenance/run.php runJobs \
 	--wait --maxjobs 300 --maxtime 900 \
 	--memory-limit 512M --quiet
 
-Nice = 19
-IOSchedulingClass = idle
-
 MemoryMax = 2G
 MemoryHigh = 1G
 
-OOMScoreAdjust = 800
+Nice = 19
+IOSchedulingClass = idle
 
 StandardOutput = append:/var/log/bg3wiki-job-runner.log
 StandardError = append:/var/log/bg3wiki-job-runner.log
