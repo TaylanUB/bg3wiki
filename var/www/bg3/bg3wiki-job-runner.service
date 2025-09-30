@@ -7,6 +7,9 @@ After = php8.4-fpm.service
 After = nginx.service
 After = elasticsearch.service
 
+StartLimitBurst = 20
+StartLimitIntervalSec = 1s
+
 [Service]
 
 User = www-data
@@ -14,8 +17,10 @@ ProtectSystem = full
 WorkingDirectory = /var/www/bg3/w
 
 Restart = always
+RestartSec = 20ms
+
 ExecStart = php maintenance/run.php runJobs \
-	--wait --maxjobs 100 --maxtime 300 \
+	--wait --maxjobs 300 --maxtime 900 \
 	--memory-limit 512M --quiet
 
 Nice = 19

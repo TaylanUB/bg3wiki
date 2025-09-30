@@ -3,15 +3,6 @@ map "" $bg3_log {
 	default 0;
 }
 
-map $request_uri $bg3_log_pagehits {
-	default    0;
-	"~^/wiki/" 0; # toggle page-hit logging
-}
-
-log_format bg3wiki_pagehits
-	'$time_iso8601 $remote_addr $status '
-	'$request_uri $http_referer "$http_user_agent"';
-
 server {
 	listen 443 ssl;
 	server_name bg3.wiki;
@@ -21,10 +12,8 @@ server {
 
 	access_log /var/log/nginx/bg3wiki-access.log combined if=$bg3_log;
 	access_log /var/log/nginx/bg3wiki-cache.log mwfc_stats if=$mwfc_log;
+	access_log /var/log/nginx/bg3wiki-pages.log wiki_page if=$wiki_page;
 	error_log /var/log/nginx/bg3wiki-error.log;
-
-	access_log /var/log/nginx/bg3wiki-pagehits.log
-		bg3wiki_pagehits if=$bg3_log_pagehits;
 
 	log_not_found off;
 
@@ -174,7 +163,7 @@ server {
 	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
 	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
 
-	access_log /var/log/nginx/bg3wiki-redirect.log combined if=$bg3_log;
+	access_log /var/log/nginx/bg3wiki-redir.log combined if=$bg3_log;
 	error_log /var/log/nginx/bg3wiki-error.log;
 
 	return 301 https://bg3.wiki$request_uri;
