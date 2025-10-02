@@ -483,10 +483,6 @@ $wgPasswordAttemptThrottle = [
 # We use a systemd service for this
 $wgJobRunRate = 0;
 
-# Tune job runner params
-$wgUpdateRowsPerJob = 5000;
-$wgUpdateRowsPerQuery = 250;
-
 # Don't invalidate caches every time this file is edited
 $wgInvalidateCacheOnLocalSettingsChange = false;
 

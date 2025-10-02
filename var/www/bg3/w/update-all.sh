@@ -18,36 +18,66 @@ wgit() {
 	wsudo git "$@"
 }
 
-echo
-echo
-echo ========================
-echo == Pre-fetching repos ==
-echo ========================
-echo
-echo
-echo 'MediaWiki Core & Submodules'
-echo
-
-wgit fetch --recurse-submodules
-
-echo
-echo 'MediaWiki Extensions'
-echo
-
-for d in extensions/*/.git/
+extensions=
+fetch=yes
+merge=
+while [ $# -gt 0 ]
 do
-(
-	cd "$d/.."
-	printf 'Extension: %s\n' "$(basename "$PWD")"
-
-	wgit fetch
-)
+	case $1 in
+		(--extensions)
+			extensions=yes
+			;;
+		(--merge)
+			merge=yes
+			;;
+		(--no-fetch)
+			fetch=
+			;;
+		(*)
+			echo >&2 "Unknown flag: $1"
+			exit 1
+	esac
+	shift
 done
 
-if [ "$1" != '--merge' ]
+if [ "$fetch" ]
+then
+
+	echo
+	echo
+	echo ========================
+	echo == Pre-fetching repos ==
+	echo ========================
+	echo
+	echo
+	echo 'MediaWiki Core & Submodules'
+	echo
+
+	wgit fetch -p --recurse-submodules
+fi
+
+if [ "$fetch" ] && [ "$extensions" ]
 then
 	echo
-	echo 'Done fetching; not merging since --merge argument not supplied.'
+	echo 'MediaWiki Extensions'
+	echo
+
+	for d in extensions/*/.git/
+	do
+	(
+		cd "$d/.."
+		printf 'Extension: %s\n' "$(basename "$PWD")"
+
+		wgit fetch -p
+	)
+	done
+fi
+
+
+if ! [ "$merge" ]
+then
+	echo
+	echo 'Done fetching; not merging.'
 	echo
 	exit
 fi
@@ -60,6 +90,8 @@ echo ===============================
 echo
 echo
 
+rm vendor/.git
+
 wgit merge --ff-only
 wgit submodule update --recursive
 
@@ -67,7 +99,6 @@ echo
 echo 'Running composer update'
 echo
 
-rm vendor/.git
 wsudo composer update --no-dev
 
 echo
@@ -81,6 +112,14 @@ echo 'PHP opcache reset'
 echo
 
 curl http://localhost/php-control?opcache_reset
+
+if ! [ "$extensions" ]
+then
+	echo
+	echo 'Done; not updating extensions.'
+	echo
+	exit
+fi
 
 echo
 echo
