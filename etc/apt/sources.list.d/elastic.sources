@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://artifacts.elastic.co/packages/7.x/apt/
+Suites: stable
+Components: main
+Signed-By: /etc/apt/trusted.gpg.d/elasticsearch.gpg
