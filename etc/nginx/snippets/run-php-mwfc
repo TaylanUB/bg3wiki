@@ -29,7 +29,7 @@ fastcgi_ignore_headers Vary;
 # Anon visitors only get English.
 fastcgi_param HTTP_ACCEPT_LANGUAGE en-US;
 
-# Variable $mwfc_bypass_cookie defined in MWFC setup file.
+# Bypass variables defined in MWFC setup file.
 fastcgi_cache_bypass $mwfc_bypass_uri $mwfc_bypass_cookie;
 
 add_header X-Cache $upstream_cache_status always;

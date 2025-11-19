@@ -143,9 +143,7 @@ $wgDiff3 = "/usr/bin/diff3";
 #$wgShowDBErrorBacktrace = true;
 #$wgShowSQLErrors = true;
 
-$devSite = ($serverName === 'dev.bg3.wiki');
-
-if ( $devSite && $_SERVER['REMOTE_ADDR'] == $taylanIpAddr ) {
+if ( $devSite ) {
 	$wgDebugLogFile = "/tmp/mw-debug.log";
 	$wgDebugToolbar = true;
 	$wgShowExceptionDetails = true;
@@ -167,7 +165,7 @@ wfLoadExtensions([
 	"ConfirmEdit",
 	"ConfirmEdit/QuestyCaptcha",
 	"ContributionScores",
-#	"CSS",
+	"CSS",
 	"DeleteBatch",
 	"Details",
 	"DiscussionTools",
@@ -198,10 +196,12 @@ wfLoadExtensions([
 	"PortableInfobox",
 	"RegexFunctions",
 	"SearchDigest",
+	"SearchThumbs",
 	"Scribunto",
 	"SimpleBatchUpload",
 	"SpamBlacklist",
-#	"SyntaxHighlightThemes",
+	# Incompatible with recent MW versions
+	#"SyntaxHighlightThemes",
 	"SyntaxHighlight_GeSHi",
 	"TabberNeue",
 	"TemplateData",
@@ -209,8 +209,10 @@ wfLoadExtensions([
 	"TemplateStylesExtender",
 	"TextExtracts",
 	"Theme",
+	"UserMerge",
 	"Variables",
-#	"VisualData",
+	# Was considered as a Cargo replacement
+	#"VisualData",
 	"VisualEditor",
 	"Widgets",
 	"WikiEditor",
@@ -242,7 +244,7 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 };
 
 # Add footer link to Copyrights page
-$wgHooks['SkinAddFooterLinks'][] = function ( $skin, $key, &$links ) {
+$wgHooks['SkinAddFooterLinks'][] = function( $skin, $key, &$links ) {
 	if ( $key !== 'places' ) {
 		return;
 	}
@@ -303,7 +305,7 @@ $wgHooks['OutputPageBodyAttributes'][] = function( $out, $skin, &$attrs ) {
 #   Sticky footer on mobile (Citizen)
 #
 
-$wgHooks['SiteNoticeAfter'][] = function ( &$html, $skin ) {
+$wgHooks['SiteNoticeAfter'][] = function( &$html, $skin ) {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
 		return;
 	}
@@ -370,7 +372,7 @@ $wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html ) {
 
 };
 
-$wgHooks['SkinAfterBottomScripts'][] = function ( $skin, &$html )
+$wgHooks['SkinAfterBottomScripts'][] = function( $skin, &$html )
 	use ( $devSite )
 {
 	if ( !bg3wikiAdsEnabled( $skin->getOutput() ) ) {
@@ -456,17 +458,28 @@ $wgFileExtensions[] = 'mp4';
 
 $wgGalleryOptions['mode'] = 'packed';
 
+$wgExpensiveParserFunctionLimit = 750;
 $wgMaxPPExpandDepth = 200;
 $wgMaxArticleSize = 4096;
 $wgAPIMaxResultSize = $wgMaxArticleSize * 4096;
+
+# Useful when working on MW:Vector.css and such
+#$wgResourceLoaderMaxage['unversioned'] = 15;
+
+#
+# Output tidying
+#
 
 $wgTidyConfig = [
 	'driver' => 'RemexHtml',
 	'pwrap' => false,
 ];
 
-# Useful when working on MW:Vector.css and such
-#$wgResourceLoaderMaxage['unversioned'] = 15;
+$wgHooks['ParserAfterTidy'][] = function( $parser, &$text ) {
+	$text = preg_replace( '/<(div|p) class="mw-empty-elt">\s*<\/\1>/', '', $text );
+	$text = preg_replace( '/<p>\s*<span class="bg3wiki-hidden-code"><\/span>\s*<\/p>/', '', $text );
+	$text = preg_replace( '/<span class="bg3wiki-hidden-code"><\/span>/', '', $text );
+};
 
 #
 # Security
@@ -624,6 +637,12 @@ $wgNamespaceProtection[NS_MODULE] = ['editmodules'];
 #$wgGroupPermissions['*']['browsearchive'] = true;
 #$wgGroupPermissions['*']['deletedtext'] = true;
 
+#
+# Rate limiting
+#
+
+$wgRateLimits['maintainer']['edit'] = [ 300, 60 ];
+
 ####################################
 #                                  #
 # Extension-specific configuration #
@@ -700,6 +719,7 @@ $wgRCFeeds['discord'] = [
 
 $wgRCFeeds['discord_file'] = [
 	'url' => $discordRCFeedFileWebhookUri,
+	'omit_minor' => true,
 	'only_namespaces' => [ NS_FILE ],
 ];
 
@@ -860,6 +880,12 @@ $wgExtractsRemoveClasses[] = '.mw-headline';
 $wgExtractsRemoveClasses[] = '.mw-empty-elt';
 
 #
+# UserMerge
+#
+
+$wgGroupPermissions['sysop']['usermerge'] = true;
+
+#
 # Variables
 #
 
@@ -893,7 +919,7 @@ $wgModerationOnlyInNamespaces = [
 	NS_MAIN, NS_FILE, NS_GUIDE, NS_MODDING, NS_MODS
 ];
 
-$wgHooks['ModerationPending'][] = function ( array $fields, $id )
+$wgHooks['ModerationPending'][] = function( array $fields, $id )
 	use ( $wgServer, $discordRCFeedUntrustedWebhookUri )
 {
 	$mws = MediaWiki\MediaWikiServices::getInstance();

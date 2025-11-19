@@ -29,8 +29,11 @@ ExecStart = php maintenance/run.php runJobs \
 MemoryMax = 2G
 MemoryHigh = 1G
 
-Nice = 19
-IOSchedulingClass = idle
+# This may be a bit too aggressive
+#Nice = 19
+#IOSchedulingClass = idle
+
+Nice = 10
 
 StandardOutput = append:/var/log/bg3wiki-job-runner.log
 StandardError = append:/var/log/bg3wiki-job-runner.log

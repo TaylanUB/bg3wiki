@@ -27,6 +27,7 @@ server {
 
 		# Enable purge handling.
 		fastcgi_cache_purge PURGE from 127.0.0.0/8;
+		cache_purge_response_type text;
 	}
 }
 
