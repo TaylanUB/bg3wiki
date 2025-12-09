@@ -18,20 +18,24 @@ wgit() {
 	wsudo git "$@"
 }
 
-extensions=
-fetch=yes
+core=
+ext=
+fetch=
 merge=
 while [ $# -gt 0 ]
 do
 	case $1 in
-		(--extensions)
-			extensions=yes
+		(--core)
+			core=yes
+			;;
+		(--ext)
+			ext=yes
+			;;
+		(--fetch)
+			fetch=yes
 			;;
 		(--merge)
 			merge=yes
-			;;
-		(--no-fetch)
-			fetch=
 			;;
 		(*)
 			echo >&2 "Unknown flag: $1"
@@ -40,39 +44,52 @@ do
 	shift
 done
 
+if [ -z "$core" ] && [ -z "$ext" ]
+then
+	echo >&2 "Select at least one of --core or --ext for upgrading."
+	exit 1
+fi
+
+if [ -z "$fetch" ] && [ -z "$merge" ]
+then
+	echo >&2 "Select at least one of --fetch or --merge as the action."
+	exit 1
+fi
+
 if [ "$fetch" ]
 then
+	echo
+	echo
+	echo ==============
+	echo == Fetching ==
+	echo ==============
+	echo
+	if [ "$core" ]
+	then
+		echo
+		echo '== MediaWiki Core & Submodules =='
+		echo
 
-	echo
-	echo
-	echo ========================
-	echo == Pre-fetching repos ==
-	echo ========================
-	echo
-	echo
-	echo 'MediaWiki Core & Submodules'
-	echo
+		wgit fetch -p --recurse-submodules
+	fi
 
-	wgit fetch -p --recurse-submodules
+	if [ "$ext" ]
+	then
+		echo
+		echo '== MediaWiki Extensions =='
+		echo
+
+		for d in extensions/*/.git/
+		do
+		(
+			cd "$d/.."
+			printf 'Extension: %s\n' "$(basename "$PWD")"
+
+			wgit fetch -p
+		)
+		done
+	fi
 fi
-
-if [ "$fetch" ] && [ "$extensions" ]
-then
-	echo
-	echo 'MediaWiki Extensions'
-	echo
-
-	for d in extensions/*/.git/
-	do
-	(
-		cd "$d/.."
-		printf 'Extension: %s\n' "$(basename "$PWD")"
-
-		wgit fetch -p
-	)
-	done
-fi
-
 
 if ! [ "$merge" ]
 then
@@ -84,36 +101,43 @@ fi
 
 echo
 echo
-echo ===============================
-echo == Starting MediaWiki update ==
-echo ===============================
+echo =============
+echo == Merging ==
+echo =============
 echo
 echo
 
-rm vendor/.git
+if [ "$core" ]
+then
+	echo
+	echo '== MediaWiki Core & Submodules =='
+	echo
 
-wgit merge --ff-only
-wgit submodule update --recursive
+	rm vendor/.git
 
-echo
-echo 'Running composer update'
-echo
+	wgit merge --ff-only
+	wgit submodule update --recursive
 
-wsudo composer update --no-dev
+	echo
+	echo 'Running composer update'
+	echo
 
-echo
-echo 'Running update maintenance script'
-echo
+	wsudo composer update --no-dev
 
-wsudo php maintenance/update.php --quick
+	echo
+	echo 'Running update maintenance script'
+	echo
 
-echo
-echo 'PHP opcache reset'
-echo
+	wsudo php maintenance/update.php --quick
 
-curl http://localhost/php-control?opcache_reset
+	echo
+	echo 'PHP opcache reset'
+	echo
 
-if ! [ "$extensions" ]
+	curl http://localhost/php-control?opcache_reset
+fi
+
+if ! [ "$ext" ]
 then
 	echo
 	echo 'Done; not updating extensions.'
@@ -123,10 +147,7 @@ fi
 
 echo
 echo
-echo ===========================
-echo == MediaWiki update done ==
-echo ==  Updating extensions  ==
-echo ===========================
+echo == MediaWiki Extensions ==
 echo
 echo
 

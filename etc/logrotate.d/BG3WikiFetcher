@@ -1,0 +1,14 @@
+/var/log/BG3WikiFetcher.log {
+    daily
+    notifempty
+    missingok
+    rotate 4
+    compress
+    delaycompress
+    prerotate
+        systemctl stop BG3WikiFetcher
+    endscript
+    postrotate
+        systemctl start BG3WikiFetcher
+    endscript
+}

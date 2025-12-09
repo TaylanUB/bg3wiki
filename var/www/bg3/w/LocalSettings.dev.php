@@ -167,6 +167,7 @@ wfLoadExtensions([
 	"ContributionScores",
 	"CSS",
 	"DeleteBatch",
+	"DeleteUserPages",
 	"Details",
 	"DiscussionTools",
 	"Echo",
@@ -685,6 +686,8 @@ $wgGroupPermissions['*']['runcargoqueries'] = false;
 $wgGroupPermissions['user']['runcargoqueries'] = true;
 $wgGroupPermissions['maintainer']['recreatecargodata'] = true;
 
+$wgCargoDefaultStringBytes = 600;
+
 #$wgAPIModules['cargofields'] = 'ApiDisabled';
 #$wgAPIModules['cargoformatparams'] = 'ApiDisabled';
 #$wgAPIModules['cargoquery'] = 'ApiDisabled';
@@ -705,6 +708,14 @@ $wgContribScoreReports = [
 	[ 30, 20 ],
 	[ 0, 200 ],
 ];
+
+#
+# DeleteUserPages
+#
+
+# Let autoconfirmed users delete their own user pages & sub-pages.
+$wgGroupPermissions['autoconfirmed']['delete-rootuserpages'] = true;
+$wgGroupPermissions['autoconfirmed']['delete-usersubpages'] = true;
 
 #
 # Discord RC Feed

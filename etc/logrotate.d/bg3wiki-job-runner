@@ -1,0 +1,14 @@
+/var/log/bg3wiki-job-runner.log {
+    daily
+    notifempty
+    missingok
+    rotate 4
+    compress
+    delaycompress
+    prerotate
+        systemctl stop bg3wiki-job-runner
+    endscript
+    postrotate
+        systemctl start bg3wiki-job-runner
+    endscript
+}
