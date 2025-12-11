@@ -139,18 +139,3 @@ server {
 		return 404;
 	}
 }
-
-# On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
-server {
-	listen 80;
-	server_name dev.bg3.wiki;
-
-	access_log /var/log/nginx/dev-bg3wiki-redir.log combined if=$dev_bg3_log;
-	error_log /var/log/nginx/dev-bg3wiki-error.log;
-
-	include snippets/letsencrypt;
-
-	location / {
-		return 301 https://dev.bg3.wiki$request_uri;
-	}
-}

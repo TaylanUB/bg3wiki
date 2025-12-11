@@ -59,7 +59,6 @@ fi
 if [ "$fetch" ]
 then
 	echo
-	echo
 	echo ==============
 	echo == Fetching ==
 	echo ==============
@@ -100,11 +99,9 @@ then
 fi
 
 echo
-echo
 echo =============
 echo == Merging ==
 echo =============
-echo
 echo
 
 if [ "$core" ]
@@ -128,7 +125,7 @@ then
 	echo 'Running update maintenance script'
 	echo
 
-	wsudo php maintenance/update.php --quick
+	wsudo php maintenance/run.php update --quick
 
 	echo
 	echo 'PHP opcache reset'
@@ -180,7 +177,7 @@ echo 'Running update maintenance script'
 echo
 
 # In case an extension requires it
-wsudo php maintenance/update.php --quick
+wsudo php maintenance/run.php update --quick
 
 echo
 echo 'PHP opcache reset'

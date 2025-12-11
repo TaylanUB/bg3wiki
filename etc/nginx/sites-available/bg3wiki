@@ -155,6 +155,36 @@ server {
 	}
 }
 
+# Same for dev subdomain.
+server {
+	listen 80;
+	server_name dev.bg3.wiki;
+
+	access_log /var/log/nginx/dev-bg3wiki-redir.log combined;
+	error_log /var/log/nginx/dev-bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://dev.bg3.wiki$request_uri;
+	}
+}
+
+# And new subdomain.
+server {
+	listen 80;
+	server_name new.bg3.wiki;
+
+	access_log /var/log/nginx/new-bg3wiki-redir.log combined;
+	error_log /var/log/nginx/new-bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://new.bg3.wiki$request_uri;
+	}
+}
+
 # Redirect erroneous www. subdomain requests to main domain.
 server {
 	listen 443 ssl;
