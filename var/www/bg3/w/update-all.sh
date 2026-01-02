@@ -110,7 +110,7 @@ then
 	echo '== MediaWiki Core & Submodules =='
 	echo
 
-	rm vendor/.git
+	rm -f vendor/.git
 
 	wgit merge --ff-only
 	wgit submodule update --recursive

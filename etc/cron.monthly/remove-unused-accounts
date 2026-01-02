@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd /var/www/bg3/w || exit
+
+sudo -u www-data php maintenance/run.php removeUnusedAccounts --ignore-touched 180
