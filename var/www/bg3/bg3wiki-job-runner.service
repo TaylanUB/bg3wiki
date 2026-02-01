@@ -20,10 +20,12 @@ WorkingDirectory = /var/www/bg3/w
 Restart = on-success
 OOMScoreAdjust = 200
 
-RestartSec = 0
+# Wait 2 seconds between bursts
+RestartSec = 2
 
+# At most 20 jobs / 20 seconds per burst
 ExecStart = php maintenance/run.php runJobs \
-	--wait --maxjobs 300 --maxtime 900 \
+	--wait --maxjobs 20 --maxtime 20 \
 	--memory-limit 512M --quiet
 
 MemoryMax = 2G
@@ -33,7 +35,7 @@ MemoryHigh = 1G
 #Nice = 19
 #IOSchedulingClass = idle
 
-Nice = 10
+Nice = 15
 
 StandardOutput = append:/var/log/bg3wiki-job-runner.log
 StandardError = append:/var/log/bg3wiki-job-runner.log

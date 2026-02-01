@@ -209,6 +209,7 @@ wfLoadExtensions([
 	"TemplateStyles",
 	"TemplateStylesExtender",
 	"TextExtracts",
+	"Thanks",
 	"Theme",
 	"UserMerge",
 	"Variables",
@@ -436,9 +437,9 @@ $wgNamespaceAliases = [
 
 #$wgReadOnly = 'Server transfer in progress; please save your changes in a text file and try again later.';
 
-if ( $serverName === 'old.bg3.wiki' ) {
-	$wgReadOnly = 'This is the old server kept as a backup. Please go to https://bg3.wiki/ instead.';
-}
+#if ( $serverName === 'old.bg3.wiki' ) {
+#	$wgReadOnly = 'This is the old server kept as a backup. Please go to https://bg3.wiki/ instead.';
+#}
 
 # Serve Main_Page as https://bg3.wiki/
 $wgMainPageIsDomainRoot = true;
@@ -470,7 +471,7 @@ $wgMaxArticleSize = 4096;
 $wgAPIMaxResultSize = $wgMaxArticleSize * 4096;
 
 # Make changes to MW:Vector.css and such quicker
-$wgResourceLoaderMaxage['unversioned'] = 15;
+$wgResourceLoaderMaxage['unversioned'] = 45;
 
 #
 # Output tidying
@@ -502,6 +503,10 @@ $wgPasswordAttemptThrottle = [
 # We use a systemd service for this
 $wgJobRunRate = 0;
 
+# Invalidate at most 5 pages per second
+$wgUpdateRowsPerJob = 5;
+$wgJobBackoffThrottling['htmlCacheUpdate'] = 1;
+
 # Don't invalidate caches every time this file is edited
 $wgInvalidateCacheOnLocalSettingsChange = false;
 
@@ -520,11 +525,6 @@ $wgCdnMaxAge = 24 * 60 * 60;
 # Note that this implicitly uses port 1080
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = "http://$serverName";
-
-# Should probably be disabled since the sidebar varies
-# depending on whether the user is logged in.
-#$wgEnableSidebarCache = true;
-#$wgSidebarCacheExpiry = 3600;
 
 #
 # SEO
@@ -693,7 +693,7 @@ $wgGroupPermissions['*']['runcargoqueries'] = false;
 $wgGroupPermissions['user']['runcargoqueries'] = true;
 $wgGroupPermissions['maintainer']['recreatecargodata'] = true;
 
-$wgCargoDefaultStringBytes = 600;
+#$wgCargoDefaultStringBytes = 600;
 
 #$wgAPIModules['cargofields'] = 'ApiDisabled';
 #$wgAPIModules['cargoformatparams'] = 'ApiDisabled';
