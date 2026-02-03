@@ -1,3 +1,8 @@
+# Easily toggle logging on/off here
+map "" $new_bg3_log {
+	default 0;
+}
+
 server {
 	listen 443 ssl;
 	server_name new.bg3.wiki;
@@ -5,10 +10,10 @@ server {
 	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
 	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
 
-	access_log /var/log/nginx/bg3wiki-access.log combined if=$bg3_log;
-	access_log /var/log/nginx/bg3wiki-cache.log mwfc_stats if=$mwfc_log;
-	access_log /var/log/nginx/bg3wiki-pages.log wiki_page if=$wiki_page;
-	error_log /var/log/nginx/bg3wiki-error.log;
+	access_log /var/log/nginx/new-bg3wiki-access.log combined if=$new_bg3_log;
+	access_log /var/log/nginx/new-bg3wiki-cache.log mwfc_stats if=$mwfc_log;
+	access_log /var/log/nginx/new-bg3wiki-pages.log wiki_page if=$wiki_page;
+	error_log /var/log/nginx/new-bg3wiki-error.log;
 
 	log_not_found off;
 
@@ -132,5 +137,34 @@ server {
 	# Add specific rules for other entry points/images as needed above this
 	location / {
 		return 404;
+	}
+}
+
+# Redirect erroneous www. subdomain requests to main domain.
+server {
+	listen 443 ssl;
+	server_name www.new.bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/new-bg3wiki-redir.log combined if=$new_bg3_log;
+	error_log /var/log/nginx/new-bg3wiki-error.log;
+
+	return 301 https://new.bg3.wiki$request_uri;
+}
+
+# On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
+server {
+	listen 80;
+	server_name new.bg3.wiki;
+
+	access_log /var/log/nginx/new-bg3wiki-redir.log combined if=$new_bg3_log;
+	error_log /var/log/nginx/new-bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://new.bg3.wiki$request_uri;
 	}
 }

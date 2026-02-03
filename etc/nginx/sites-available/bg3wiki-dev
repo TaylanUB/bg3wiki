@@ -139,3 +139,32 @@ server {
 		return 404;
 	}
 }
+
+# Redirect erroneous www. subdomain requests to main domain.
+server {
+	listen 443 ssl;
+	server_name www.dev.bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/dev-bg3wiki-redir.log combined if=$dev_bg3_log;
+	error_log /var/log/nginx/dev-bg3wiki-error.log;
+
+	return 301 https://dev.bg3.wiki$request_uri;
+}
+
+# On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
+server {
+	listen 80;
+	server_name dev.bg3.wiki;
+
+	access_log /var/log/nginx/dev-bg3wiki-redir.log combined if=$dev_bg3_log;
+	error_log /var/log/nginx/dev-bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://dev.bg3.wiki$request_uri;
+	}
+}

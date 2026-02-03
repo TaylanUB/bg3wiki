@@ -20,8 +20,12 @@ fastcgi_pass php_fpm;
 
 fastcgi_cache mwfc;
 fastcgi_cache_valid 1h;
-fastcgi_cache_min_uses 5;
-fastcgi_cache_use_stale error timeout http_500 http_503;
+fastcgi_cache_min_uses 2;
+fastcgi_cache_use_stale error timeout updating http_500 http_503;
+
+fastcgi_cache_lock on;
+fastcgi_cache_lock_age 15s;
+fastcgi_cache_lock_timeout 15s;
 
 # Ignore Vary because we took care of everything ourselves.
 fastcgi_ignore_headers Vary;

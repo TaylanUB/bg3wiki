@@ -149,6 +149,7 @@ if ( $devSite ) {
 	$wgShowExceptionDetails = true;
 	$wgShowDBErrorBacktrace = true;
 	$wgShowSQLErrors = true;
+	$wgThumbroExposeTestPage = true;
 }
 
 wfLoadExtensions([
@@ -211,6 +212,7 @@ wfLoadExtensions([
 	"TextExtracts",
 	"Thanks",
 	"Theme",
+	"Thumbro",
 	"UserMerge",
 	"Variables",
 	# Was considered as a Cargo replacement
@@ -471,7 +473,7 @@ $wgMaxArticleSize = 4096;
 $wgAPIMaxResultSize = $wgMaxArticleSize * 4096;
 
 # Make changes to MW:Vector.css and such quicker
-$wgResourceLoaderMaxage['unversioned'] = 45;
+#$wgResourceLoaderMaxage['unversioned'] = 15;
 
 #
 # Output tidying
@@ -513,18 +515,24 @@ $wgInvalidateCacheOnLocalSettingsChange = false;
 # Update this to invalidate caches manually instead
 $wgCacheEpoch = 20250917193500;
 
-# Parser cache lasts 10 days
-$wgParserCacheExpiryTime = 10 * 24 * 60 * 60;
+# Parser cache lasts 15 days
+$wgParserCacheExpiryTime = 15 * 24 * 60 * 60;
 
 # Allow caching via reverse proxy
 # In our case this is just the Nginx FCGI cache
+# Lasts for 10 days; 2/3 of the parser cache time
 $wgUseCdn = !$devSite;
-$wgCdnMaxAge = 24 * 60 * 60;
+$wgCdnMaxAge = 10 * 24 * 60 * 60;
 
 # Make MediaWiki send PURGE requests to Nginx
 # Note that this implicitly uses port 1080
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = "http://$serverName";
+
+# Backup server doesn't purge
+if ( $serverName === 'old.bg3.wiki' ) {
+	$wgCdnServers = [];
+}
 
 #
 # SEO

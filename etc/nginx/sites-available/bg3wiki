@@ -140,6 +140,20 @@ server {
 	}
 }
 
+# Redirect erroneous www. subdomain requests to main domain.
+server {
+	listen 443 ssl;
+	server_name www.bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/bg3wiki-redir.log combined if=$bg3_log;
+	error_log /var/log/nginx/bg3wiki-error.log;
+
+	return 301 https://bg3.wiki$request_uri;
+}
+
 # On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
 server {
 	listen 80;
@@ -153,48 +167,4 @@ server {
 	location / {
 		return 301 https://bg3.wiki$request_uri;
 	}
-}
-
-# Same for dev subdomain.
-server {
-	listen 80;
-	server_name dev.bg3.wiki;
-
-	access_log /var/log/nginx/dev-bg3wiki-redir.log combined;
-	error_log /var/log/nginx/dev-bg3wiki-error.log;
-
-	include snippets/letsencrypt;
-
-	location / {
-		return 301 https://dev.bg3.wiki$request_uri;
-	}
-}
-
-# And new subdomain.
-server {
-	listen 80;
-	server_name new.bg3.wiki;
-
-	access_log /var/log/nginx/new-bg3wiki-redir.log combined;
-	error_log /var/log/nginx/new-bg3wiki-error.log;
-
-	include snippets/letsencrypt;
-
-	location / {
-		return 301 https://new.bg3.wiki$request_uri;
-	}
-}
-
-# Redirect erroneous www. subdomain requests to main domain.
-server {
-	listen 443 ssl;
-	server_name www.bg3.wiki;
-
-	ssl_certificate     /etc/letsencrypt/live/bg3.wiki/fullchain.pem;
-	ssl_certificate_key /etc/letsencrypt/live/bg3.wiki/privkey.pem;
-
-	access_log /var/log/nginx/bg3wiki-redir.log combined if=$bg3_log;
-	error_log /var/log/nginx/bg3wiki-error.log;
-
-	return 301 https://bg3.wiki$request_uri;
 }
