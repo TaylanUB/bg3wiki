@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd /etc/nginx/modules-enabled || exit
+
+for mod
+do
+	file=$mod.conf
+	if [ -L "$file" ]
+	then
+		rm -- "$file"
+	else
+		echo >&2 "Not a symlink: $file"
+	fi
+done

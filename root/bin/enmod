@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd /etc/nginx/modules-enabled || exit
+
+for mod
+do
+	path=../modules-available/$mod.conf
+	if ! [ -f "$path" ]
+	then
+		echo >&2 "Module not found: $mod"
+		exit 1
+	fi
+	ln -s "$path" .
+done

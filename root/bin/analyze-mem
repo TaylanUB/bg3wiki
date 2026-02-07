@@ -1,0 +1,19 @@
+#!/bin/sh
+
+ps -o pid,ppid,cmd -C $1 | while read pid ppid c0 c1 _
+do
+	if [ $pid = PID ]
+	then
+		continue
+	fi
+
+	echo $pid/$c1
+
+	awk '
+		/^Shared_/ { shared += $2 / 1024 }
+		/^Private_/ { private += $2 / 1024 }
+		END { print "Private:", private, "Shared:", shared }
+	' < /proc/$pid/smaps
+
+	echo
+done

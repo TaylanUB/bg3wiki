@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/mariadb --auto-vertical-output "$@"

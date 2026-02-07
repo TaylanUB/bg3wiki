@@ -1,0 +1,70 @@
+#!/bin/bash
+
+match=like
+history=
+term=
+while [ $# -gt 0 ]
+do
+  arg=$1
+  shift
+  case $arg in
+    (-x) match=regexp ;;
+    (-h) history=yes ;;
+    (-*)
+      echo >&2 "Unknown arg: $arg"
+      exit 1
+      ;;
+    (*)
+      if [ "$term" ]
+      then
+        echo >&2 "Excess arg: $arg"
+        exit 1
+      fi
+      term=$arg
+  esac
+done
+
+if ! [ "$term" ]
+then
+  echo >&2 "No search term provided."
+  exit 1
+fi
+
+# Change ' to '' because this will be inside an SQL string
+term=${term//\'/\'\'}
+
+if [ $match = regexp ]
+then
+  # Change \ to \\ since regexp inside SQL string requires double backslash escapes
+  term=${term//\\/\\\\}
+else
+  # Wrap % around it since LIKE matches against the full string
+  term=%$term%
+fi
+
+mariadb bg3wiki << EOF | parse-wiki-page-list
+  select page_namespace, page_title ${history:+", rev_timestamp"}
+
+  from page
+
+  join revision
+    on rev_page = page_id
+    $([ "$history" ] || echo 'and rev_id = page_latest')
+
+  join slots
+    on slot_revision_id = rev_id
+   and slot_role_id = 1
+
+  join content
+    on content_id = slot_content_id
+   and content_address like 'tt:%'
+
+  join text
+    on old_id = substring(content_address, 4)
+
+  where old_text $match '$term'
+EOF
+
+# Local Variables:
+# sh-basic-offset: 2
+# End:

@@ -1,0 +1,14 @@
+/var/log/mwfc-purger.log {
+    weekly
+    notifempty
+    missingok
+    rotate 4
+    compress
+    delaycompress
+    prerotate
+        systemctl stop mwfc-purger
+    endscript
+    postrotate
+        systemctl start mwfc-purger
+    endscript
+}

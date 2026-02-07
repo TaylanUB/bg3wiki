@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd /etc/nginx/sites-enabled || exit
+
+for site
+do
+	path=../sites-available/$site
+	if ! [ -f "$path" ]
+	then
+		echo >&2 "Site not found: $site"
+		exit 1
+	fi
+	ln -s "$path" .
+done

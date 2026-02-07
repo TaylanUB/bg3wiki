@@ -1,0 +1,33 @@
+#!/bin/bash
+
+root=/var/www/bg3
+
+method=${1^^}
+script=$2
+path=$3
+query=$4
+uri=$path${query:+?$query}
+
+cd "$root"
+
+sudo -u www-data \
+	SCRIPT_FILENAME="$root/$script" \
+	QUERY_STRING="$query" \
+	REQUEST_METHOD="$method" \
+	SCRIPT_NAME="$script" \
+	REQUEST_URI="$uri" \
+	DOCUMENT_URI="$path" \
+	DOCUMENT_ROOT="$root" \
+	SERVER_PROTOCOL=HTTP/1.1 \
+	REQUEST_SCHEME=https \
+	HTTPS=on \
+	GATEWAY_INTERFACE=CGI/1.1 \
+	SERVER_SOFTWARE=nginx/1.25.5 \
+	REMOTE_ADDR=127.0.0.1 \
+	REMOTE_PORT=1234 \
+	REMOTE_USER= \
+	SERVER_ADDR=127.0.0.1 \
+	SERVER_PORT=443 \
+	SERVER_NAME=bg3.wiki \
+	REDIRECT_STATUS=200 \
+	php-cgi

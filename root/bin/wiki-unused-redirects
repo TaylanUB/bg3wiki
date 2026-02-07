@@ -1,0 +1,29 @@
+#!/bin/bash
+
+mariadb bg3wiki << EOF | parse-wiki-page-list
+  select page_namespace, page_title
+
+  from page
+
+  join redirect
+    on rd_from = page_id
+
+  where not exists (
+    select 1
+    from pagelinks
+    where pl_namespace = page_namespace
+      and pl_title = page_title
+  ) and not exists (
+    select 1
+    from templatelinks
+    join linktarget
+      on lt_id = tl_target_id
+    where lt_namespace = page_namespace
+      and lt_title = page_title
+  ) and not exists (
+    select 1
+    from imagelinks
+    where page_namespace = 6
+      and il_to = page_title
+  )
+EOF

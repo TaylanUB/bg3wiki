@@ -1,0 +1,44 @@
+#!/bin/bash
+
+match=like
+
+while [[ $1 = -* ]]
+do
+  case $1 in
+    (-x)
+      match=regexp
+      shift
+      ;;
+    (-nr)
+      noredir=yes
+      shift
+      ;;
+    (*)
+      echo >&2 "Unrecognized flag: $1"
+      exit 1
+  esac
+done
+
+if [[ $# -gt 1 ]]
+then
+  echo >&2 "Too many arguments"
+  exit 1
+fi
+
+# Change ' to '' because this will be inside an SQL string
+term=${1//\'/\'\'}
+
+if [ $match = regexp ]
+then
+  # Change \ to \\ since regexp inside SQL string requires double backslash escapes
+  term=${term//\\/\\\\}
+else
+  # Wrap % around it since LIKE matches against the full string
+  term=%$term%
+fi
+
+mariadb bg3wiki << EOF | parse-wiki-page-list
+  select page_namespace, page_title
+  from page
+  where page_title $match '$term' ${noredir+and page_is_redirect = 0}
+EOF

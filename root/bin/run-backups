@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#
+# This is run from another server via ssh.
+#
+
+renice 19 $$ > /dev/null
+ionice -c 3 -p $$
+
+errors=
+run() {
+	printf '[[[ Running: %s ]]]\n\n' "$*"
+
+	"$@"
+	e=$?
+
+	printf '\n'
+	printf '[[[ Exit code: %s ]]]\n\n' "$e"
+
+	if [ "$e" -ne 0 ]
+	then
+		errors=$errors$e
+	fi
+}
+
+d=/srv/nfs/backup/bg3wiki
+
+run rsync -azv --del /etc tk:$d
+run rsync -azv --del /var/www tk:$d/var
+run rsync -azv --del /var/lib/automysqlbackup tk:$d/var/lib
+
+if [ "$errors" ]
+then
+	exit 1
+fi

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+curl -X POST -d "$1" http://localhost/php-control?eval

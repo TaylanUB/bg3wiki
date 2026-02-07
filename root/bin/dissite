@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd /etc/nginx/sites-enabled || exit
+
+for site
+do
+	if [ -L "$site" ]
+	then
+		rm -- "$site"
+	else
+		echo >&2 "Not a symlink: $site"
+	fi
+done

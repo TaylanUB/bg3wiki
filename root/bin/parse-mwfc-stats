@@ -1,0 +1,26 @@
+#!/usr/bin/awk -f
+
+{
+
+if ($0 ~ /^H/) hit_c++
+if ($0 ~ /^M/) mis_c++
+if ($0 ~ /^E/) exp_c++
+if ($0 ~ /^B/) byp_c++
+tot++
+
+}
+
+END {
+
+hit_p = hit_c * 100 / tot
+mis_p = mis_c * 100 / tot
+exp_p = exp_c * 100 / tot
+byp_p = byp_c * 100 / tot
+
+printf "Hit: %5.2f%% (%7d)\n", hit_p, hit_c
+printf "Mis: %5.2f%% (%7d)\n", mis_p, mis_c
+printf "Exp: %5.2f%% (%7d)\n", exp_p, exp_c
+printf "Byp: %5.2f%% (%7d)\n", byp_p, byp_c
+printf "Tot: %d\n", tot
+
+}

@@ -1,0 +1,34 @@
+#!/bin/sh
+
+while IFS=$(printf '\t') read ns title
+do
+  case $ns in
+  (page_namespace) continue ;;
+  (0) ;;
+  (1) printf Talk ;;
+  (2) printf User ;;
+  (3) printf User_talk ;;
+  (4) printf Project ;;
+  (5) printf Project_talk ;;
+  (6) printf File ;;
+  (7) printf File_talk ;;
+  (8) printf MediaWiki ;;
+  (9) printf MediaWiki_talk ;;
+  (10) printf Template ;;
+  (11) printf Template_talk ;;
+  (12) printf Help ;;
+  (13) printf Help_talk ;;
+  (14) printf Category ;;
+  (15) printf Category_talk ;;
+  (274) printf Widget ;;
+  (275) printf Widget_talk ;;
+  (828) printf Module ;;
+  (829) printf Module_talk ;;
+  (3000) printf Guide ;;
+  (3001) printf Guide_talk ;;
+  (3002) printf Modding ;;
+  (3003) printf Modding_talk ;;
+  (*) printf %s "$ns" ;;
+  esac
+  printf ':%s\n' "$title"
+done | sort
