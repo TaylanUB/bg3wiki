@@ -12,7 +12,7 @@ server {
 
 	access_log /var/log/nginx/bg3wiki-access.log combined if=$bg3_log;
 	access_log /var/log/nginx/bg3wiki-cache.log mwfc_stats if=$mwfc_log;
-	access_log /var/log/nginx/bg3wiki-pages.log wiki_page if=$wiki_page;
+	access_log /var/log/nginx/bg3wiki-page.log wiki_page if=$wiki_page;
 	error_log /var/log/nginx/bg3wiki-error.log;
 
 	log_not_found off;

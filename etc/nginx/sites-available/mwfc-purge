@@ -13,8 +13,9 @@ server {
 		}
 
 		include snippets/run-php-direct;
-		fastcgi_param REQUEST_HOST $host;
-		fastcgi_param SCRIPT_FILENAME /var/www/purge-dispatch.php;
+		fastcgi_param URI https://$host$request_uri;
+		fastcgi_param LOG /var/log/nginx/mwfc-purge-dispatch.log;
+		fastcgi_param SCRIPT_FILENAME /var/www/mwfc-purge-dispatch.php;
 	}
 }
 
