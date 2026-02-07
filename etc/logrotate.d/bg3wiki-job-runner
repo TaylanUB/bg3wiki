@@ -1,5 +1,6 @@
 /var/log/bg3wiki-job-runner.log {
     daily
+    dateext
     notifempty
     missingok
     rotate 4

@@ -505,9 +505,8 @@ $wgPasswordAttemptThrottle = [
 # We use a systemd service for this
 $wgJobRunRate = 0;
 
-# Invalidate at most 5 pages per second
-$wgUpdateRowsPerJob = 5;
-$wgJobBackoffThrottling['htmlCacheUpdate'] = 1;
+# Don't lock the database too much (default is 300)
+$wgUpdateRowsPerJob = 20;
 
 # Don't invalidate caches every time this file is edited
 $wgInvalidateCacheOnLocalSettingsChange = false;
@@ -528,11 +527,6 @@ $wgCdnMaxAge = 10 * 24 * 60 * 60;
 # Note that this implicitly uses port 1080
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = "http://$serverName";
-
-# Backup server doesn't purge
-if ( $serverName === 'old.bg3.wiki' ) {
-	$wgCdnServers = [];
-}
 
 #
 # SEO

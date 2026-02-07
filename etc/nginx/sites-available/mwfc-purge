@@ -1,8 +1,31 @@
 server {
 	listen 1080 default_server;
 
+	access_log /var/log/nginx/mwfc-purge-dispatch.log;
+	error_log /var/log/nginx/mwfc-purge-dispatch.log;
+
+	allow 127.0.0.0/8;
+	deny all;
+
+	location / {
+		if ($request_method != "PURGE") {
+			return 405;
+		}
+
+		include snippets/run-php-direct;
+		fastcgi_param REQUEST_HOST $host;
+		fastcgi_param SCRIPT_FILENAME /var/www/purge-dispatch.php;
+	}
+}
+
+server {
+	listen 1081 default_server;
+
 	access_log /var/log/nginx/mwfc-purge-access.log;
 	error_log /var/log/nginx/mwfc-purge-error.log;
+
+	allow 127.0.0.0/8;
+	deny all;
 
 	location / {
 		if ($request_method != "PURGE") {
@@ -30,4 +53,3 @@ server {
 		cache_purge_response_type text;
 	}
 }
-
