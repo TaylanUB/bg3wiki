@@ -23,10 +23,10 @@ OOMScoreAdjust = 200
 # Wait 2 seconds between bursts
 RestartSec = 2
 
-# At most 20 jobs / 20 seconds per burst
+ExecStartPre = php maintenance/run.php runJobs --type=enotifNotify
+
 ExecStart = php maintenance/run.php runJobs \
-	--wait --maxjobs 20 --maxtime 20 \
-	--memory-limit 512M --quiet
+	--maxjobs 20 --maxtime 20 --memory-limit 1G --wait
 
 MemoryMax = 2G
 MemoryHigh = 1G

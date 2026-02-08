@@ -1,0 +1,32 @@
+[Unit]
+
+Description = MediaWiki FastCGI Cache Purger
+
+After = mariadb.service
+After = php8.4-fpm.service
+After = nginx.service
+
+[Service]
+
+User = www-data
+ProtectSystem = full
+WorkingDirectory = /var/www
+
+# We don't want it to restart on OOM.
+Restart = on-success
+OOMScoreAdjust = 200
+
+ExecStart = php mwfc-purge-process.php
+KillMode = mixed
+
+MemoryMax = 400M
+MemoryHigh = 200M
+
+Nice = 15
+
+StandardOutput = append:/var/log/mwfc-purger.log
+StandardError = append:/var/log/mwfc-purger.log
+
+[Install]
+
+WantedBy = multi-user.target
