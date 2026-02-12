@@ -230,9 +230,6 @@ wfLoadExtensions([
 wfLoadSkin("Vector");
 $wgDefaultSkin = "vector";
 $wgDefaultTheme = "dark-grey"; # Extension:Theme
-$wgSkipThemes = [
-	'vector' => [ 'dark' => true ]
-];
 
 wfLoadSkin("Citizen");
 $wgCitizenThemeDefault = "dark";
@@ -464,6 +461,10 @@ $wgAllowUserJs = true;
 
 $wgFileExtensions[] = 'webm';
 $wgFileExtensions[] = 'mp4';
+$wgFileExtensions[] = 'svg';
+
+$wgSVGNativeRendering = true;
+$wgSVGConverter = 'rsvg';
 
 $wgGalleryOptions['mode'] = 'packed';
 
@@ -910,6 +911,14 @@ $wgGroupPermissions['sysop']['usermerge'] = true;
 #
 
 $egVariablesDisabledFunctions = [ 'var_final' ];
+
+#
+# VisualEditor
+#
+
+$wgVisualEditorTabMessages['edit'] = 'visualeditor-ca-editvisual';
+$wgVisualEditorTabMessages['editsection'] = 'visualeditor-ca-editvisual-section';
+$wgVisualEditorTabPosition = 'after';
 
 #
 # WikiSEO

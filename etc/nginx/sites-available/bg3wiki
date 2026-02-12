@@ -69,11 +69,11 @@ server {
 
 	# Custom CSS and JS code
 	location ~ ^/(css|js)/ {
-		include headers/cache-5min;
+		include headers/cache-15min;
 	}
 
 	# Custom PHP scripts
-	location /php/ {
+	location ~ ^/php/.*\.php$ {
 		include snippets/run-php-mwfc;
 	}
 
