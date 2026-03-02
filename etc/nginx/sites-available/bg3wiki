@@ -19,38 +19,30 @@ server {
 
 	root /var/www/bg3;
 
-	#include headers/default;
+	include headers/default;
 	#include headers/unsafe-csp;
-	include headers/strict-hsts;
+	#include headers/strict-hsts;
 
 	### LibreSpeed ###
-
-	location /speedtest {
-	}
-
-	location ~ ^/speedtest/backend/.*\.php$ {
-		include snippets/run-php-direct;
-	}
-
+	#location /speedtest {
+	#}
+	#location ~ ^/speedtest/backend/.*\.php$ {
+	#	include snippets/run-php-direct;
+	#}
 	### END LibreSpeed ###
 
 	### Payment ###
-
 	location /payment {
 	}
-
 	location /payment/requests {
 		return 403;
 	}
-
 	location /payment/riddle/clients {
 		return 403;
 	}
-
 	location ~ ^/payment/.*\.php$ {
 		include snippets/run-php-direct;
 	}
-
 	### END Payment ###
 
 	# ads.txt from Playwire
@@ -59,16 +51,14 @@ server {
 	}
 
 	# No cache for robots, sitemaps
-	location ~ ^/(robots|sitemap) {
+	location ~ ^/(robots\.txt|sitemap(/.*)?\.xml)$ {
 	}
 
 	# Static assets outside of MediaWiki
-	location ~ ^/(favicon|static) {
+	location ~ ^/(favicon\.ico|static/.*[^/])$ {
 		include headers/cache-30d;
 	}
-
-	# Custom CSS and JS code
-	location ~ ^/(css|js)/ {
+	location ~ ^/js/.*\.js$ {
 		include headers/cache-15min;
 	}
 
@@ -82,7 +72,6 @@ server {
 		fastcgi_index w/index.php;
 		include snippets/run-php-mwfc;
 	}
-
 	location = /wiki/Main_Page {
 		return 301 /;
 	}
@@ -107,14 +96,13 @@ server {
 	location /w/images/deleted {
 		deny all;
 	}
-
 	# Stupid bots keep requesting directories, triggering error logs
 	location ~ ^/w/images(/.*)?/$ {
 		return 404;
 	}
 
 	# MediaWiki assets (usually images)
-	location ~ ^/w/resources/(assets|lib|src) {
+	location ~ ^/w/resources/(assets|lib|src)/.*[^/]$ {
 		include headers/cache-30d;
 	}
 

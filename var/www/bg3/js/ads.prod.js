@@ -4,7 +4,7 @@
  */
 
 function matchMinWH(w, h) {
-	return matchMedia(
+	return window.matchMedia(
 		`(min-width: ${w}px) and (min-height: ${h}px)`
 	);
 }
@@ -35,11 +35,17 @@ function enableAds() {
 		const classes = document.body.classList;
 		classes.replace('mw-ads-enabled', 'mw-ads-disabled');
 	};
-	document.body.appendChild(script);
 
-	const notice = document.getElementById('bg3wiki-ad-provider-notice');
-	if (notice) {
-		notice.innerText = 'Ads provided by: playwire';
+	const load = function() {
+		document.body.appendChild(script);
+		const apnId = 'bg3wiki-ad-provider-notice';
+		const apn = document.getElementById(apnId);
+		apn.innerText = 'Ads provided by: playwire';
+	};
+	if (document.readyState === 'complete') {
+		load();
+	} else {
+		window.addEventListener('load', load);
 	}
 }
 

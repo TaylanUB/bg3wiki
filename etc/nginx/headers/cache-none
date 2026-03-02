@@ -1,0 +1,3 @@
+include headers/default;
+# No need for no-store, which is overkill.
+add_header Cache-Control "no-cache";
