@@ -199,6 +199,7 @@ wfLoadExtensions([
 	"Popups",
 	"PortableInfobox",
 	"RegexFunctions",
+	"ReplaceText",
 	"SearchDigest",
 	"SearchThumbs",
 	"Scribunto",
@@ -864,6 +865,12 @@ $wgPFEnableStringFunctions = true;
 # https://www.mediawiki.org/wiki/Topic:Uvkion1a0f5xqa07
 $wgPopupsTextExtractsIntroOnly = false;
 $wgPopupsReferencePreviewsBetaFeature = false;
+
+#
+# ReplaceText
+#
+
+$wgGroupPermissions['sysop']['replacetext'] = true;
 
 #
 # Scribunto

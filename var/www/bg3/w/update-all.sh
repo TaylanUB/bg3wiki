@@ -98,6 +98,30 @@ then
 	exit
 fi
 
+composer_update() {
+	echo
+	echo 'Running composer update'
+	echo
+
+	wsudo composer update --no-dev
+}
+
+maintenance_update() {
+	echo
+	echo 'Running update maintenance script'
+	echo
+
+	wsudo php maintenance/run.php update --quick
+}
+
+opcache_reset() {
+	echo
+	echo 'PHP opcache reset'
+	echo
+
+	curl http://localhost/php-control?opcache_reset
+}
+
 echo
 echo =============
 echo == Merging ==
@@ -115,23 +139,9 @@ then
 	wgit merge --ff-only
 	wgit submodule update --recursive
 
-	echo
-	echo 'Running composer update'
-	echo
-
-	wsudo composer update --no-dev
-
-	echo
-	echo 'Running update maintenance script'
-	echo
-
-	wsudo php maintenance/run.php update --quick
-
-	echo
-	echo 'PHP opcache reset'
-	echo
-
-	curl http://localhost/php-control?opcache_reset
+	composer_update
+	maintenance_update
+	opcache_reset
 fi
 
 if ! [ "$ext" ]
@@ -148,44 +158,47 @@ echo == MediaWiki Extensions ==
 echo
 echo
 
-for d in extensions/*/.git/
-do (
-	cd "$d/.."
-	printf 'Extension: %s\n' "$(basename "$PWD")"
+for d in extensions/*/.git/..
+do
+	if (
+		cd "$d"
+		printf 'Extension: %s\n' "$(basename "$PWD")"
 
-	if [ "$(wgit branch --show-current)" = "" ]
-	then
-		echo "Detached HEAD; nothing to do."
-	else
+		if [ "$(wgit branch --show-current)" = "" ]
+		then
+			echo "Detached HEAD; nothing to do."
+			exit 1
+		fi
+
+		if [ "$(wgit rev-parse HEAD)" = "$(wgit rev-parse @{u})" ]
+		then
+			echo 'Up to date; nothing to do.'
+			exit 1
+		fi
+
+		if ! wgit merge-base --is-ancestor HEAD @{u}
+		then
+			echo
+			echo '!!!!!!!!!!!!!!!!!!!!!!!!!'
+			echo '!!! UPSTREAM DIVERGED !!!'
+			echo '!!!!!!!!!!!!!!!!!!!!!!!!!'
+			echo
+			exit 1
+		fi
+
 		wgit merge --ff-only
 
 		if [ -e composer.json ]
 		then
-			echo
-			echo 'Running composer update'
-			echo
-
-			wsudo composer update --no-dev
+			composer_update
 		fi
+	)
+	then
+		maintenance_update
+		opcache_reset
 	fi
+done
 
-	echo
-) done
-
-echo
-echo 'Running update maintenance script'
-echo
-
-# In case an extension requires it
-wsudo php maintenance/run.php update --quick
-
-echo
-echo 'PHP opcache reset'
-echo
-
-curl http://localhost/php-control?opcache_reset
-
-echo
 echo
 echo ==============
 echo == All done ==
