@@ -11,7 +11,9 @@ if ($geo_block) {
 	return 444;
 }
 
-limit_req zone=mwrl burst=20 nodelay;
+limit_req zone=mwrl_subnet burst=100 nodelay;
+limit_req zone=mwrl_global burst=300 nodelay;
+
 error_page 429 /static/http429.html;
 
 include fastcgi.conf;
