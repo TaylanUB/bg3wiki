@@ -1,0 +1,191 @@
+# Easily toggle logging on/off here
+map "" $old_bg3_log {
+	default 1;
+}
+
+server {
+	listen 443 ssl;
+	server_name old.bg3.wiki bg3.wiki; # Allow bg3.wiki for fake local requests
+
+	ssl_certificate     /etc/letsencrypt/live/old.bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/old.bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/old-bg3wiki-access.log combined if=$old_bg3_log;
+	access_log /var/log/nginx/old-bg3wiki-cache.log mwfc_stats if=$mwfc_log;
+	access_log /var/log/nginx/old-bg3wiki-page.log wiki_page if=$wiki_page;
+	error_log /var/log/nginx/old-bg3wiki-error.log;
+
+	log_not_found off;
+
+	root /var/www/bg3;
+
+	include headers/default;
+	#include headers/unsafe-csp;
+	#include headers/strict-hsts;
+
+	# Catch-all if nothing matches
+	location / { return 404; }
+
+	#location /speedtest {
+	#	location ~ ^/speedtest/backend/.*\.php$ {
+	#		include snippets/run-php-direct;
+	#	}
+	#}
+
+	location /payment/ {
+		location ~ \.(html|css|js)$ {}
+		location ~ \.php$ {
+			include snippets/run-php-direct;
+		}
+		location ~ . { return 404; }
+	}
+
+	# ads.txt from Playwire
+	location = /ads.txt {
+		return 307 https://config.playwire.com/dyn_ads/1025372/75208/ads.txt;
+	}
+
+	# Serve robots & sitemaps without cache
+	location = /robots.txt {}
+	location = /sitemap.xml {}
+	location /sitemap/ {
+		location ~ \.xml$ {}
+		location ~ . { return 404; }
+	}
+
+	# Static assets outside of MediaWiki
+	location = /favicon.ico {
+		include headers/cache-30d;
+	}
+	location /static/ {
+		location ~ [^/]$ {
+			include headers/cache-30d;
+		}
+		location ~ . { return 404; }
+	}
+
+	# Custom JS files
+	location /js/ {
+		location ~ \.js$ {
+			include headers/cache-15min;
+		}
+		location ~ . { return 404; }
+	}
+
+	# Custom PHP scripts
+	location /php/ {
+		location ~ \.php$ {
+			include snippets/run-php-mwfc;
+		}
+		location ~ . { return 404; }
+	}
+
+	# Root URL is main page
+	location = / {
+		fastcgi_index w/index.php;
+		include snippets/run-php-mwfc;
+	}
+	location = /wiki/Main_Page { return 301 /; }
+
+	# Handling for the article path (pretty URLs)
+	location /wiki/ { rewrite . /w/index.php; }
+
+	# Actual MediaWiki paths
+	location /w/ {
+		# Catch-all if nothing matches
+		location /w/ { return 404; }
+
+		# Location for wiki's entry points
+		location ~ ^/w/(index|load|api|thumb|opensearch_desc|rest)\.php$ {
+			include snippets/run-php-mwfc;
+		}
+
+		# Block Discord's broken page preview tool
+		location = /w/api.php {
+			if ($http_user_agent ~ "Discordbot") {
+				return 403;
+			}
+			include snippets/run-php-mwfc;
+		}
+
+		# Images
+		location /w/images/ {
+			include headers/cache-1d;
+
+			# Prevent error log on directory request
+			location ~ /$ { return 404; }
+		}
+		location /w/images/thumb/ {
+			location ~ "/[0-9a-f]/[0-9a-f]{2}/([^/]+)/[^/]*([0-9]+)px-" {
+				include headers/cache-1d;
+				try_files $uri @thumb_handler;
+			}
+			location ~ . { return 404; }
+		}
+		location /w/images/deleted/ { return 404; }
+
+		# Assets
+		location /w/resources/assets/ {
+			location ~ [^/]$ { include headers/cache-30d; }
+			location ~ . { return 404; }
+		}
+		location /w/resources/lib/ {
+			location ~ [^/]$ { include headers/cache-30d; }
+			location ~ . { return 404; }
+		}
+		location /w/resources/src/ {
+			location ~ [^/]$ { include headers/cache-30d; }
+			location ~ . { return 404; }
+		}
+		location /w/extensions/ {
+			location ~ \.(css|js|gif|ico|jpe?g|png|svg|webp|wasm|ttf|woff2?)$ {
+				include headers/cache-30d;
+			}
+			location ~ . { return 404; }
+		}
+		location /w/skins/ {
+			location ~ \.(css|js|gif|ico|jpe?g|png|svg|webp|wasm|ttf|woff2?)$ {
+				include headers/cache-30d;
+			}
+			location ~ . { return 404; }
+		}
+
+		# REST API
+		location /w/rest.php/ {
+			try_files $uri $uri/ /w/rest.php?$query_string;
+		}
+	}
+
+	location @thumb_handler {
+		rewrite ^/w/images/thumb/(.*) /w/thumb_handler.php/$1;
+	}
+}
+
+# Redirect erroneous www. subdomain requests to main domain.
+server {
+	listen 443 ssl;
+	server_name www.old.bg3.wiki;
+
+	ssl_certificate     /etc/letsencrypt/live/old.bg3.wiki/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/old.bg3.wiki/privkey.pem;
+
+	access_log /var/log/nginx/old-bg3wiki-redir.log combined if=$old_bg3_log;
+	error_log /var/log/nginx/old-bg3wiki-error.log;
+
+	return 301 https://old.bg3.wiki$request_uri;
+}
+
+# On port 80, handle LetsEncrypt requests, otherwise redirect to HTTPS.
+server {
+	listen 80;
+	server_name old.bg3.wiki;
+
+	access_log /var/log/nginx/old-bg3wiki-redir.log combined if=$old_bg3_log;
+	error_log /var/log/nginx/old-bg3wiki-error.log;
+
+	include snippets/letsencrypt;
+
+	location / {
+		return 301 https://old.bg3.wiki$request_uri;
+	}
+}
