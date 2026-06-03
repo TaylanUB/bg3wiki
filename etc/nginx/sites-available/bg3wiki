@@ -21,111 +21,109 @@ server {
 
 	include headers/default;
 	#include headers/unsafe-csp;
-	#include headers/strict-hsts;
 
-	### LibreSpeed ###
-	#location /speedtest {
-	#}
-	#location ~ ^/speedtest/backend/.*\.php$ {
-	#	include snippets/run-php-direct;
-	#}
-	### END LibreSpeed ###
+	# Catch-all if nothing matches
+	location / { return 404; }
 
-	### Payment ###
-	location /payment {
+	location /payment/ {
+		location ~ \.(html|css|js)$ { include headers/cache-15min; }
+		location ~ \.php$ { include snippets/run-php-direct; }
+		location ~ . { return 404; }
 	}
-	location /payment/requests {
-		return 403;
-	}
-	location /payment/riddle/clients {
-		return 403;
-	}
-	location ~ ^/payment/.*\.php$ {
-		include snippets/run-php-direct;
-	}
-	### END Payment ###
 
-	# ads.txt from Playwire
 	location = /ads.txt {
 		return 307 https://config.playwire.com/dyn_ads/1025372/75208/ads.txt;
 	}
 
-	# No cache for robots, sitemaps
-	location ~ ^/(robots\.txt|sitemap(/.*)?\.xml)$ {
+	location = /robots.txt {}
+	location = /sitemap.xml {}
+	location /sitemap/ {
+		location ~ \.xml$ {}
+		location ~ . { return 404; }
 	}
 
-	# Static assets outside of MediaWiki
-	location ~ ^/(favicon\.ico|static/.*[^/])$ {
-		include headers/cache-30d;
-	}
-	location ~ ^/js/.*\.js$ {
-		include headers/cache-15min;
+	location = /favicon.ico { include headers/cache-30d; }
+	location /static/ {
+		location ~ [^/]$ { include headers/cache-30d; }
+		location ~ . { return 404; }
 	}
 
-	# Custom PHP scripts
-	location ~ ^/php/.*\.php$ {
-		include snippets/run-php-mwfc;
+	location /js/ {
+		location ~ \.js$ { include headers/cache-15min; }
+		location ~ . { return 404; }
 	}
 
-	# Root URL is main page
+	location /php/ {
+		location ~ \.php$ { include snippets/run-php-direct; }
+		location ~ . { return 404; }
+	}
+
+	# Root URL is Main Page
+	location = /wiki/Main_Page { return 301 /; }
 	location = / {
 		fastcgi_index w/index.php;
 		include snippets/run-php-mwfc;
 	}
-	location = /wiki/Main_Page {
-		return 301 /;
-	}
 
-	# Location for wiki's entry points
-	location ~ ^/w/(index|load|api|thumb|opensearch_desc|rest)\.php$ {
-		include snippets/run-php-mwfc;
-	}
+	# Wiki pages (pretty URLs)
+	location /wiki/ { rewrite . /w/index.php; }
 
-	# Block Discord's broken page preview tool
+	# === Actual MediaWiki installation paths follow ===
+
+	location = /w/index.php { include snippets/run-php-mwfc; }
+	location = /w/load.php { include snippets/run-php-mwfc; }
+	location = /w/rest.php { include snippets/run-php-mwfc; }
+	location = /w/thumb_handler.php { include snippets/run-php-mwfc; }
+	location = /w/opensearch_desc.php { include snippets/run-php-mwfc; }
 	location = /w/api.php {
-		if ($http_user_agent ~ "Discordbot") {
-			return 403;
-		}
+		# Block Discord's broken page preview tool
+		if ($http_user_agent ~ "Discordbot") { return 403; }
 		include snippets/run-php-mwfc;
 	}
 
 	# Images
-	location /w/images {
-		include headers/cache-1d;
+	location /w/images/ {
+		location ~ [^/]$ { include headers/cache-1d; }
+		location ~ . { return 404; }
 	}
-	location /w/images/deleted {
-		deny all;
+	location /w/images/thumb/ {
+		location ~ [^/]$ {
+			# Use 404 thumb handler if not found
+			try_files $uri /w/thumb_handler.php;
+			include headers/cache-1d;
+		}
+		location ~ . { return 404; }
 	}
-	# Stupid bots keep requesting directories, triggering error logs
-	location ~ ^/w/images(/.*)?/$ {
-		return 404;
+	location /w/images/deleted/ { return 404; }
+
+	# Assets
+	location /w/resources/assets/ {
+		location ~ [^/]$ { include headers/cache-30d; }
+		location ~ . { return 404; }
+	}
+	location /w/resources/lib/ {
+		location ~ [^/]$ { include headers/cache-30d; }
+		location ~ . { return 404; }
+	}
+	location /w/resources/src/ {
+		location ~ [^/]$ { include headers/cache-30d; }
+		location ~ . { return 404; }
+	}
+	location /w/extensions/ {
+		location ~ \.(css|js|gif|ico|jpe?g|png|svg|webp|wasm|ttf|woff2?)$ {
+			include headers/cache-30d;
+		}
+		location ~ . { return 404; }
+	}
+	location /w/skins/ {
+		location ~ \.(css|js|gif|ico|jpe?g|png|svg|webp|wasm|ttf|woff2?)$ {
+			include headers/cache-30d;
+		}
+		location ~ . { return 404; }
 	}
 
-	# MediaWiki assets (usually images)
-	location ~ ^/w/resources/(assets|lib|src)/.*[^/]$ {
-		include headers/cache-30d;
-	}
-
-	# Assets, scripts and styles from skins and extensions
-	location ~ ^/w/(skins|extensions)/.+\.(css|js|gif|ico|jpg|jpeg|png|svg|webp|wasm|ttf|woff|woff2)$ {
-		include headers/cache-30d;
-	}
-
-	# Handling for Mediawiki REST API, see [[mw:API:REST_API]]
-	location /w/rest.php/ {
-		try_files $uri $uri/ /w/rest.php?$query_string;
-	}
-
-	# Handling for the article path (pretty URLs)
-	location /wiki/ {
-		rewrite ^/wiki/(?<pagename>.*)$ /w/index.php;
-	}
-
-	# Every other entry point will be disallowed.
-	# Add specific rules for other entry points/images as needed above this
-	location / {
-		return 404;
-	}
+	# REST API
+	location /w/rest.php/ { rewrite . /w/rest.php; }
 }
 
 # Redirect erroneous www. subdomain requests to main domain.
