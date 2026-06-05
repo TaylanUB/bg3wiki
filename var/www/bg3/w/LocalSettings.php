@@ -529,6 +529,9 @@ $wgCdnMaxAge = 20 * 24 * 60 * 60;
 $wgCdnServers = [ '127.0.0.1' ];
 $wgInternalServer = "http://$serverName";
 
+# We call thumb_handler.php on 404
+$wgGenerateThumbnailOnParse = false;
+
 #
 # SEO
 #
