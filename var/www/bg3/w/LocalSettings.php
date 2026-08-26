@@ -267,10 +267,19 @@ function bg3wikiAdsEnabled( OutputPage $out ) {
 	if ( $user->isRegistered() ) {
 		return false;
 	}
-	$ns = $out->getTitle()->getNamespace();
+
+	$title = $out->getTitle();
+
+	$search = SpecialPage::getTitleFor('Search');
+	if ( $title->equals($search) ) {
+		return true;
+	}
+
+	$ns = $title->getNamespace();
 	if ( !bg3wikiAdsEnabledNs($ns) ) {
 		return false;
 	}
+
 	return true;
 }
 
@@ -279,8 +288,6 @@ function bg3wikiAdsEnabledNs( $ns ) {
 		case NS_MAIN:
 		case NS_FILE:
 		case NS_CATEGORY:
-		# For Search page
-		case NS_SPECIAL:
 			return true;
 		default:
 			return false;
@@ -632,8 +639,8 @@ $wgGroupPermissions['maintainer']['protect'] = true;
 $wgGroupPermissions['maintainer']['editmodules'] = true;
 $wgGroupPermissions['maintainer']['editproject'] = true;
 $wgGroupPermissions['maintainer']['edittemplates'] = true;
-$wgGroupPermissions['maintainer']['visualdata-caneditdata'] = true;
-$wgGroupPermissions['maintainer']['visualdata-canmanageschemas'] = true;
+$wgGroupPermissions['maintainer']['noratelimit'] = true;
+$wgGroupPermissions['maintainer']['apihighlimits'] = true;
 
 $wgGroupPermissions['sysop']['checkuser'] = true;
 $wgGroupPermissions['sysop']['checkuser-log'] = true;
@@ -643,6 +650,13 @@ $wgGroupPermissions['sysop']['checkuser-temporary-account'] = true;
 $wgNamespaceProtection[NS_TEMPLATE] = ['edittemplates'];
 $wgNamespaceProtection[NS_PROJECT] = ['editproject'];
 $wgNamespaceProtection[NS_MODULE] = ['editmodules'];
+
+# For bot passwords
+$wgGrantPermissions['basic']['searchdigest-reader'] = true;
+$wgGrantPermissions['basic']['searchdigest-reader-stats'] = true;
+$wgGrantPermissions['editmodules']['editmodules'] = true;
+$wgGrantPermissions['editproject']['editproject'] = true;
+$wgGrantPermissions['edittemplates']['edittemplates'] = true;
 
 # To allow the public to see deleted content:
 #$wgGroupPermissions['*']['deletedhistory'] = true;
