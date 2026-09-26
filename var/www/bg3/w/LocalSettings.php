@@ -71,10 +71,6 @@ $wgDBprefix = "";
 # MySQL table options to use during installation or update
 $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 
-# Shared database table
-# This has no effect unless $wgSharedDB is also set.
-$wgSharedTables[] = "actor";
-
 ## Shared memory settings
 $wgMainCacheType = CACHE_ACCEL;
 $wgParserCacheType = CACHE_ACCEL;
@@ -641,6 +637,10 @@ $wgGroupPermissions['maintainer']['editproject'] = true;
 $wgGroupPermissions['maintainer']['edittemplates'] = true;
 $wgGroupPermissions['maintainer']['noratelimit'] = true;
 $wgGroupPermissions['maintainer']['apihighlimits'] = true;
+$wgGroupPermissions['maintainer']['deletedhistory'] = true;
+$wgGroupPermissions['maintainer']['browsearchive'] = true;
+$wgGroupPermissions['maintainer']['deletedtext'] = true;
+$wgGroupPermissions['maintainer']['undelete'] = true;
 
 $wgGroupPermissions['sysop']['checkuser'] = true;
 $wgGroupPermissions['sysop']['checkuser-log'] = true;
@@ -657,11 +657,6 @@ $wgGrantPermissions['basic']['searchdigest-reader-stats'] = true;
 $wgGrantPermissions['editmodules']['editmodules'] = true;
 $wgGrantPermissions['editproject']['editproject'] = true;
 $wgGrantPermissions['edittemplates']['edittemplates'] = true;
-
-# To allow the public to see deleted content:
-#$wgGroupPermissions['*']['deletedhistory'] = true;
-#$wgGroupPermissions['*']['browsearchive'] = true;
-#$wgGroupPermissions['*']['deletedtext'] = true;
 
 #
 # Rate limiting
