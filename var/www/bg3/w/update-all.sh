@@ -78,12 +78,13 @@ then
 		echo '== MediaWiki Extensions =='
 		echo
 
-		for d in extensions/*/.git/
+		for d in extensions/*/.git/..
 		do
 		(
-			cd "$d/.."
-			printf 'Extension: %s\n' "$(basename "$PWD")"
+			cd "$d"
+			name=$(basename "$PWD")
 
+			printf 'Extension: %s\n' "$name"
 			wgit fetch -p
 		)
 		done
@@ -111,7 +112,7 @@ maintenance_update() {
 	echo 'Running update maintenance script'
 	echo
 
-	wsudo php maintenance/run.php update --quick
+	wsudo php maintenance/run.php update -q --quick
 }
 
 opcache_reset() {
@@ -162,17 +163,17 @@ for d in extensions/*/.git/..
 do
 	if (
 		cd "$d"
-		printf 'Extension: %s\n' "$(basename "$PWD")"
+		name=$(basename "$PWD")
 
 		if [ "$(wgit branch --show-current)" = "" ]
 		then
-			echo "Detached HEAD; nothing to do."
+			printf 'Detached HEAD; nothing to do: %s\n' "$name"
 			exit 1
 		fi
 
 		if [ "$(wgit rev-parse HEAD)" = "$(wgit rev-parse @{u})" ]
 		then
-			echo 'Up to date; nothing to do.'
+			printf 'Up to date; nothing to do: %s\n' "$name"
 			exit 1
 		fi
 
@@ -183,8 +184,12 @@ do
 			echo '!!! UPSTREAM DIVERGED !!!'
 			echo '!!!!!!!!!!!!!!!!!!!!!!!!!'
 			echo
+			printf '>>> %s <<<\n' "$name"
+			echo
 			exit 1
 		fi
+
+		printf 'Updating: %s\n' "$name"
 
 		wgit merge --ff-only
 
