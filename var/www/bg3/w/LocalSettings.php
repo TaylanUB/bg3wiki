@@ -17,7 +17,7 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	exit;
 }
 
-$serverName = ($_SERVER['SERVER_NAME'] ?? "bg3.wiki");
+$serverName = ($_SERVER['SERVER_NAME'] ?? $srvName);
 
 $devServer = ($serverName === 'old.bg3.wiki');
 
@@ -196,6 +196,7 @@ wfLoadExtensions([
 	"PortableInfobox",
 	"RegexFunctions",
 	"ReplaceText",
+	"SandboxLink",
 	"SearchDigest",
 	"SearchThumbs",
 	"Scribunto",
@@ -206,6 +207,7 @@ wfLoadExtensions([
 	"SyntaxHighlight_GeSHi",
 	"TabberNeue",
 	"TemplateData",
+	"TemplateSandbox",
 	"TemplateStyles",
 	"TemplateStylesExtender",
 	"TextExtracts",
@@ -573,8 +575,9 @@ $wgSMTP = [
 # Autoconfirm
 #
 
-$wgAutoConfirmAge = 24 * 60 * 60;
-$wgAutoConfirmCount = 15;
+# 12 hours and 10 edits
+$wgAutoConfirmAge = 12 * 60 * 60;
+$wgAutoConfirmCount = 10;
 
 $wgGroupPermissions['autoconfirmed']['autopatrol'] = true;
 # Extension:ConfirmEdit
